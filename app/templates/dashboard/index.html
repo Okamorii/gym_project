@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Workout Tracker{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <header class="dashboard-header">
+        <h1>Hey, {{ current_user.username }}!</h1>
+        <p class="date">{{ now().strftime('%A, %B %d') }}</p>
+    </header>
+
+    <!-- Volume Alerts -->
+    {% if volume_alerts %}
+    <div class="alerts">
+        {% for alert in volume_alerts %}
+        <div class="alert alert-{{ alert.severity }}">
+            {{ alert.message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Quick Stats -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <span class="stat-value">{{ stats.workouts_this_week }}</span>
+            <span class="stat-label">This Week</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-value">{{ stats.streak }}</span>
+            <span class="stat-label">Day Streak</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-value">{{ stats.weekly_distance }}km</span>
+            <span class="stat-label">Running</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-value">{{ stats.weekly_volume|int }}kg</span>
+            <span class="stat-label">Volume</span>
+        </div>
+    </div>
+
+    <!-- Weekly Progress -->
+    <section class="card">
+        <h2>Weekly Progress</h2>
+        <div class="progress-bars">
+            <div class="progress-item">
+                <span class="progress-label">Strength ({{ stats.strength_this_week }}/{{ stats.strength_target }})</span>
+                <div class="progress-bar">
+                    {% set strength_pct = [stats.strength_this_week / stats.strength_target * 100, 100] | min %}
+                    <div class="progress-fill" style="width: {{ strength_pct }}%"></div>
+                </div>
+            </div>
+            <div class="progress-item">
+                <span class="progress-label">Running ({{ stats.running_this_week }}/{{ stats.running_target }})</span>
+                <div class="progress-bar">
+                    {% set running_pct = [stats.running_this_week / stats.running_target * 100, 100] | min %}
+                    <div class="progress-fill" style="width: {{ running_pct }}%"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quick Actions -->
+    <section class="quick-actions">
+        <a href="{{ url_for('workouts.new_session') }}" class="action-btn action-strength">
+            <span class="action-icon">&#128170;</span>
+            <span>Log Strength</span>
+        </a>
+        <a href="{{ url_for('running.new_session') }}" class="action-btn action-running">
+            <span class="action-icon">&#127939;</span>
+            <span>Log Run</span>
+        </a>
+    </section>
+
+    <!-- Recent PRs -->
+    {% if recent_prs %}
+    <section class="card">
+        <h2>Recent PRs</h2>
+        <ul class="pr-list">
+            {% for pr in recent_prs %}
+            <li class="pr-item">
+                <span class="pr-exercise">{{ pr.exercise.name if pr.exercise else 'Unknown' }}</span>
+                <span class="pr-value">{{ pr.value }}kg</span>
+                <span class="pr-date">{{ pr.date_achieved }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+    </section>
+    {% endif %}
+
+    <!-- Recent Workouts -->
+    {% if recent_workouts %}
+    <section class="card">
+        <h2>Recent Workouts</h2>
+        <ul class="workout-list">
+            {% for workout in recent_workouts %}
+            <li class="workout-item">
+                <a href="{{ url_for('workouts.view_session' if workout.session_type == 'upper_body' else 'running.view_session', session_id=workout.session_id) }}">
+                    <span class="workout-type">{{ workout.session_type|replace('_', ' ')|title }}</span>
+                    <span class="workout-date">{{ workout.session_date }}</span>
+                    {% if workout.duration_minutes %}
+                    <span class="workout-duration">{{ workout.duration_minutes }}min</span>
+                    {% endif %}
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+    </section>
+    {% endif %}
+
+    <!-- Recovery -->
+    {% if today_recovery %}
+    <section class="card">
+        <h2>Today's Recovery</h2>
+        <div class="recovery-grid">
+            <div class="recovery-item">
+                <span class="recovery-label">Sleep</span>
+                <span class="recovery-value">{{ today_recovery.sleep_quality }}/10</span>
+            </div>
+            <div class="recovery-item">
+                <span class="recovery-label">Energy</span>
+                <span class="recovery-value">{{ today_recovery.energy_level }}/10</span>
+            </div>
+            <div class="recovery-item">
+                <span class="recovery-label">Soreness</span>
+                <span class="recovery-value">{{ today_recovery.muscle_soreness }}/10</span>
+            </div>
+            <div class="recovery-item">
+                <span class="recovery-label">Motivation</span>
+                <span class="recovery-value">{{ today_recovery.motivation_score }}/10</span>
+            </div>
+        </div>
+    </section>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Add now() function for template
+</script>
+{% endblock %}

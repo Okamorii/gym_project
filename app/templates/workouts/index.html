@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Strength Training - Workout Tracker{% endblock %}
+
+{% block content %}
+<div class="workouts-page">
+    <header class="page-header">
+        <h1>Strength Training</h1>
+        <a href="{{ url_for('workouts.new_session') }}" class="btn btn-primary">New Session</a>
+    </header>
+
+    {% if sessions.items %}
+    <ul class="workout-list">
+        {% for session in sessions.items %}
+        <li class="workout-item card">
+            <a href="{{ url_for('workouts.view_session', session_id=session.session_id) }}">
+                <div class="workout-info">
+                    <span class="workout-date">{{ session.session_date.strftime('%a, %b %d') }}</span>
+                    {% if session.duration_minutes %}
+                    <span class="workout-duration">{{ session.duration_minutes }} min</span>
+                    {% endif %}
+                </div>
+                <div class="workout-summary">
+                    <span>{{ session.strength_logs.count() }} exercises</span>
+                    <span>{{ session.total_volume|int }}kg volume</span>
+                </div>
+            </a>
+        </li>
+        {% endfor %}
+    </ul>
+
+    <!-- Pagination -->
+    {% if sessions.pages > 1 %}
+    <nav class="pagination">
+        {% if sessions.has_prev %}
+        <a href="{{ url_for('workouts.index', page=sessions.prev_num) }}" class="btn btn-secondary">&larr; Prev</a>
+        {% endif %}
+        <span>Page {{ sessions.page }} of {{ sessions.pages }}</span>
+        {% if sessions.has_next %}
+        <a href="{{ url_for('workouts.index', page=sessions.next_num) }}" class="btn btn-secondary">Next &rarr;</a>
+        {% endif %}
+    </nav>
+    {% endif %}
+
+    {% else %}
+    <div class="empty-state card">
+        <p>No strength sessions yet.</p>
+        <a href="{{ url_for('workouts.new_session') }}" class="btn btn-primary">Start Your First Session</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

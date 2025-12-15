@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Running - Workout Tracker{% endblock %}
+
+{% block content %}
+<div class="running-page">
+    <header class="page-header">
+        <h1>Running</h1>
+        <a href="{{ url_for('running.new_session') }}" class="btn btn-success">Log Run</a>
+    </header>
+
+    <!-- Weekly Stats -->
+    <div class="card stats-summary">
+        <div class="stat-inline">
+            <span class="stat-value">{{ weekly_distance }}km</span>
+            <span class="stat-label">This Week</span>
+        </div>
+    </div>
+
+    {% if sessions.items %}
+    <ul class="workout-list">
+        {% for session in sessions.items %}
+        {% set run = session.running_logs.first() %}
+        <li class="workout-item card">
+            <a href="{{ url_for('running.view_session', session_id=session.session_id) }}">
+                <div class="workout-info">
+                    <span class="workout-date">{{ session.session_date.strftime('%a, %b %d') }}</span>
+                    {% if run %}
+                    <span class="run-type-badge {{ run.run_type }}">{{ run.run_type }}</span>
+                    {% endif %}
+                </div>
+                {% if run %}
+                <div class="run-details">
+                    <span class="distance">{{ run.distance_km }}km</span>
+                    <span class="duration">{{ run.duration_minutes }}min</span>
+                    {% if run.avg_pace_per_km %}
+                    <span class="pace">{{ "%.1f"|format(run.avg_pace_per_km) }}/km</span>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </a>
+        </li>
+        {% endfor %}
+    </ul>
+
+    <!-- Pagination -->
+    {% if sessions.pages > 1 %}
+    <nav class="pagination">
+        {% if sessions.has_prev %}
+        <a href="{{ url_for('running.index', page=sessions.prev_num) }}" class="btn btn-secondary">&larr; Prev</a>
+        {% endif %}
+        <span>Page {{ sessions.page }} of {{ sessions.pages }}</span>
+        {% if sessions.has_next %}
+        <a href="{{ url_for('running.index', page=sessions.next_num) }}" class="btn btn-secondary">Next &rarr;</a>
+        {% endif %}
+    </nav>
+    {% endif %}
+
+    {% else %}
+    <div class="empty-state card">
+        <p>No runs logged yet.</p>
+        <a href="{{ url_for('running.new_session') }}" class="btn btn-success">Log Your First Run</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

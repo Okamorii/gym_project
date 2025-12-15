@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}Log Run - Workout Tracker{% endblock %}
+
+{% block content %}
+<div class="new-run">
+    <header class="page-header">
+        <h1>Log Run</h1>
+    </header>
+
+    <form method="POST" class="card">
+        <div class="form-group">
+            <label for="session_date">Date</label>
+            <input type="date" id="session_date" name="session_date"
+                   value="{{ today }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="run_type">Run Type</label>
+            <select id="run_type" name="run_type" required>
+                {% for value, label, desc in run_types %}
+                <option value="{{ value }}">{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="distance_km">Distance (km)</label>
+                <input type="number" id="distance_km" name="distance_km"
+                       step="0.1" min="0" inputmode="decimal" class="input-large">
+            </div>
+            <div class="form-group">
+                <label for="duration_minutes">Duration (min)</label>
+                <input type="number" id="duration_minutes" name="duration_minutes"
+                       min="0" inputmode="numeric" class="input-large">
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="avg_heart_rate">Avg HR</label>
+                <input type="number" id="avg_heart_rate" name="avg_heart_rate"
+                       min="40" max="220" inputmode="numeric">
+            </div>
+            <div class="form-group">
+                <label for="max_heart_rate">Max HR</label>
+                <input type="number" id="max_heart_rate" name="max_heart_rate"
+                       min="40" max="220" inputmode="numeric">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="elevation_gain_meters">Elevation Gain (m)</label>
+            <input type="number" id="elevation_gain_meters" name="elevation_gain_meters"
+                   min="0" inputmode="numeric">
+        </div>
+
+        <div class="form-group">
+            <label for="perceived_effort">How did it feel?</label>
+            <select id="perceived_effort" name="perceived_effort">
+                <option value="">Select...</option>
+                <option value="easy">Easy</option>
+                <option value="moderate">Moderate</option>
+                <option value="hard">Hard</option>
+                <option value="very_hard">Very Hard</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="weather_conditions">Weather</label>
+            <input type="text" id="weather_conditions" name="weather_conditions"
+                   placeholder="e.g., Sunny, 20°C">
+        </div>
+
+        <div class="form-group">
+            <label for="route_notes">Route Notes</label>
+            <textarea id="route_notes" name="route_notes" rows="2"
+                      placeholder="Where did you run?"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="notes">Session Notes</label>
+            <textarea id="notes" name="notes" rows="2"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-success btn-block btn-large">
+            Log Run
+        </button>
+    </form>
+</div>
+{% endblock %}

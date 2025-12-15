@@ -1,0 +1,635 @@
+/* ============================================
+   WORKOUT TRACKER - Mobile-First CSS
+   ============================================ */
+
+:root {
+    --primary: #6366f1;
+    --primary-dark: #4f46e5;
+    --success: #22c55e;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --bg-dark: #0f0f1a;
+    --bg-card: #1a1a2e;
+    --bg-input: #252540;
+    --text-primary: #ffffff;
+    --text-secondary: #a0a0b0;
+    --border: #2a2a40;
+    --radius: 12px;
+    --radius-sm: 8px;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    font-size: 16px;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg-dark);
+    color: var(--text-primary);
+    line-height: 1.5;
+    min-height: 100vh;
+    padding-bottom: 80px;
+}
+
+/* ============================================
+   TYPOGRAPHY
+   ============================================ */
+
+h1 { font-size: 1.75rem; font-weight: 700; }
+h2 { font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem; }
+h3 { font-size: 1.1rem; font-weight: 600; }
+
+a {
+    color: var(--primary);
+    text-decoration: none;
+}
+
+/* ============================================
+   LAYOUT
+   ============================================ */
+
+.container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+.card {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+}
+
+/* ============================================
+   NAVIGATION
+   ============================================ */
+
+.navbar {
+    background: var(--bg-card);
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.nav-brand a {
+    color: var(--text-primary);
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.nav-menu {
+    display: none;
+}
+
+.nav-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+}
+
+.nav-toggle span {
+    display: block;
+    width: 24px;
+    height: 2px;
+    background: var(--text-primary);
+    margin: 5px 0;
+}
+
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--bg-card);
+    display: flex;
+    justify-content: space-around;
+    padding: 0.5rem 0;
+    border-top: 1px solid var(--border);
+    z-index: 100;
+}
+
+.bottom-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    padding: 0.5rem;
+}
+
+.bottom-nav-item .icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.25rem;
+}
+
+.bottom-nav-item:hover,
+.bottom-nav-item.active {
+    color: var(--primary);
+}
+
+/* ============================================
+   FORMS
+   ============================================ */
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+input, select, textarea {
+    width: 100%;
+    padding: 0.875rem;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-size: 1rem;
+}
+
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+.input-large {
+    font-size: 1.25rem;
+    padding: 1rem;
+    text-align: center;
+}
+
+small {
+    display: block;
+    margin-top: 0.25rem;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+}
+
+/* ============================================
+   BUTTONS
+   ============================================ */
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.875rem 1.5rem;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-block {
+    width: 100%;
+}
+
+.btn-large {
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+}
+
+.btn-sm {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--primary-dark);
+}
+
+.btn-secondary {
+    background: var(--bg-input);
+    color: var(--text-primary);
+}
+
+.btn-success {
+    background: var(--success);
+    color: white;
+}
+
+.btn-danger {
+    background: var(--danger);
+    color: white;
+}
+
+.btn-icon {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 0.5rem;
+    font-size: 1.25rem;
+}
+
+.btn-delete:hover {
+    color: var(--danger);
+}
+
+/* ============================================
+   AUTH PAGES
+   ============================================ */
+
+.auth-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.auth-card {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 2rem;
+    width: 100%;
+    max-width: 400px;
+}
+
+.auth-card h1 {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.auth-link {
+    text-align: center;
+    margin-top: 1.5rem;
+    color: var(--text-secondary);
+}
+
+.checkbox label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+}
+
+.checkbox input {
+    width: auto;
+}
+
+/* ============================================
+   DASHBOARD
+   ============================================ */
+
+.dashboard-header {
+    margin-bottom: 1.5rem;
+}
+
+.dashboard-header .date {
+    color: var(--text-secondary);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.stat-card {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 1rem;
+    text-align: center;
+}
+
+.stat-value {
+    display: block;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.stat-label {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+.progress-item {
+    margin-bottom: 1rem;
+}
+
+.progress-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.progress-bar {
+    height: 8px;
+    background: var(--bg-input);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--primary);
+    border-radius: 4px;
+    transition: width 0.3s;
+}
+
+.quick-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    border-radius: var(--radius);
+    color: white;
+    font-weight: 600;
+}
+
+.action-strength {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+}
+
+.action-running {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+}
+
+.action-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+/* ============================================
+   LISTS
+   ============================================ */
+
+.workout-list,
+.pr-list,
+.exercise-log-list {
+    list-style: none;
+}
+
+.workout-item,
+.pr-item,
+.logged-exercise {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.workout-item:last-child,
+.pr-item:last-child,
+.logged-exercise:last-child {
+    border-bottom: none;
+}
+
+.workout-item a {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--text-primary);
+}
+
+.workout-type {
+    font-weight: 500;
+}
+
+.workout-date,
+.workout-duration {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.logged-exercise {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.log-info {
+    flex: 1;
+}
+
+.log-exercise-name {
+    display: block;
+    font-weight: 500;
+}
+
+.log-details {
+    color: var(--primary);
+    font-weight: 600;
+}
+
+.log-rpe,
+.log-1rm {
+    display: inline-block;
+    margin-left: 0.5rem;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+/* ============================================
+   EXERCISE SUBSTITUTION
+   ============================================ */
+
+.substitute-section {
+    margin-bottom: 1rem;
+}
+
+.substitute-list {
+    margin-top: 0.75rem;
+}
+
+.substitute-options {
+    list-style: none;
+}
+
+.substitute-option {
+    padding: 1rem;
+    background: var(--bg-input);
+    border-radius: var(--radius-sm);
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.substitute-option:hover {
+    background: var(--primary);
+}
+
+.sub-name {
+    display: block;
+    font-weight: 500;
+}
+
+.sub-last {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.last-performance {
+    background: var(--bg-input);
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-sm);
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+/* ============================================
+   ALERTS & FLASH MESSAGES
+   ============================================ */
+
+.flash-messages {
+    margin-bottom: 1rem;
+}
+
+.flash {
+    padding: 1rem;
+    border-radius: var(--radius-sm);
+    margin-bottom: 0.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.flash-success {
+    background: rgba(34, 197, 94, 0.2);
+    border: 1px solid var(--success);
+}
+
+.flash-error {
+    background: rgba(239, 68, 68, 0.2);
+    border: 1px solid var(--danger);
+}
+
+.flash-warning {
+    background: rgba(245, 158, 11, 0.2);
+    border: 1px solid var(--warning);
+}
+
+.flash-info {
+    background: rgba(99, 102, 241, 0.2);
+    border: 1px solid var(--primary);
+}
+
+.flash-close {
+    background: none;
+    border: none;
+    color: inherit;
+    font-size: 1.25rem;
+    cursor: pointer;
+}
+
+.alert {
+    padding: 1rem;
+    border-radius: var(--radius-sm);
+    margin-bottom: 0.5rem;
+}
+
+.alert-warning {
+    background: rgba(245, 158, 11, 0.2);
+    border-left: 4px solid var(--warning);
+}
+
+/* ============================================
+   RECOVERY
+   ============================================ */
+
+.recovery-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.recovery-item {
+    text-align: center;
+}
+
+.recovery-label {
+    display: block;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+.recovery-value {
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+/* ============================================
+   SESSION SUMMARY
+   ============================================ */
+
+.session-summary {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+    font-weight: 600;
+    color: var(--primary);
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (min-width: 768px) {
+    .nav-toggle {
+        display: none;
+    }
+
+    .nav-menu {
+        display: flex;
+        gap: 1.5rem;
+    }
+
+    .nav-link {
+        color: var(--text-secondary);
+    }
+
+    .nav-link:hover {
+        color: var(--primary);
+    }
+
+    .bottom-nav {
+        display: none;
+    }
+
+    body {
+        padding-bottom: 0;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}

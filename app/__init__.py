@@ -1,0 +1,53 @@
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager
+from flask_jwt_extended import JWTManager
+from flask_bcrypt import Bcrypt
+
+from .config import config
+
+# Extensions
+db = SQLAlchemy()
+login_manager = LoginManager()
+jwt = JWTManager()
+bcrypt = Bcrypt()
+
+
+def create_app(config_name='default'):
+    """Application factory."""
+    app = Flask(__name__)
+    app.config.from_object(config[config_name])
+
+    # Initialize extensions
+    db.init_app(app)
+    login_manager.init_app(app)
+    jwt.init_app(app)
+    bcrypt.init_app(app)
+
+    # Login manager settings
+    login_manager.login_view = 'auth.login'
+    login_manager.login_message_category = 'info'
+
+    # Register blueprints
+    from .blueprints.auth import auth_bp
+    from .blueprints.dashboard import dashboard_bp
+    from .blueprints.workouts import workouts_bp
+    from .blueprints.running import running_bp
+    from .blueprints.analytics import analytics_bp
+    from .blueprints.api import api_bp
+
+    app.register_blueprint(auth_bp)
+    app.register_blueprint(dashboard_bp)
+    app.register_blueprint(workouts_bp, url_prefix='/workouts')
+    app.register_blueprint(running_bp, url_prefix='/running')
+    app.register_blueprint(analytics_bp, url_prefix='/analytics')
+    app.register_blueprint(api_bp, url_prefix='/api/v1')
+
+    # User loader for Flask-Login
+    from .models.user import User
+
+    @login_manager.user_loader
+    def load_user(user_id):
+        return User.query.get(int(user_id))
+
+    return app

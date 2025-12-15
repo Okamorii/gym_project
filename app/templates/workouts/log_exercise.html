@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+
+{% block title %}Log Exercise - Workout Tracker{% endblock %}
+
+{% block content %}
+<div class="workout-log">
+    <header class="page-header">
+        <h1>Strength Training</h1>
+        <p class="session-date">{{ session.session_date }}</p>
+    </header>
+
+    <!-- Current Logs -->
+    {% if current_logs %}
+    <section class="card logged-exercises">
+        <h2>Logged Sets</h2>
+        <ul class="exercise-log-list">
+            {% for log in current_logs %}
+            <li class="logged-exercise">
+                <div class="log-info">
+                    <span class="log-exercise-name">{{ log.exercise.name }}</span>
+                    <span class="log-details">{{ log.sets }}x{{ log.reps }} @ {{ log.weight_kg }}kg</span>
+                    {% if log.rpe %}<span class="log-rpe">RPE {{ log.rpe }}</span>{% endif %}
+                    <span class="log-1rm">Est. 1RM: {{ log.estimated_1rm }}kg</span>
+                </div>
+                <form method="POST" action="{{ url_for('workouts.delete_log', log_id=log.log_id) }}" class="delete-form">
+                    <button type="submit" class="btn-icon btn-delete" title="Delete">&times;</button>
+                </form>
+            </li>
+            {% endfor %}
+        </ul>
+        <div class="session-summary">
+            <span>Total Volume: {{ session.total_volume|int }}kg</span>
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- Add Exercise Form -->
+    <section class="card">
+        <h2>Add Set</h2>
+        <form method="POST" class="exercise-form" id="exerciseForm">
+            <div class="form-group">
+                <label for="exercise_id">Exercise</label>
+                <select id="exercise_id" name="exercise_id" required class="exercise-select">
+                    <option value="">Select exercise...</option>
+                    {% for exercise in exercises %}
+                    <option value="{{ exercise.exercise_id }}"
+                            data-muscle="{{ exercise.muscle_group }}">
+                        {{ exercise.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Substitute Button (shown when exercise selected) -->
+            <div class="substitute-section" id="substituteSection" style="display: none;">
+                <button type="button" class="btn btn-secondary btn-sm" id="showSubstitutes">
+                    Machine busy? Show alternatives
+                </button>
+                <div id="substituteList" class="substitute-list" style="display: none;"></div>
+            </div>
+
+            <!-- Last Performance (shown when exercise selected) -->
+            <div class="last-performance" id="lastPerformance" style="display: none;">
+                <p>Last time: <span id="lastDetails"></span></p>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="sets">Sets</label>
+                    <input type="number" id="sets" name="sets" min="1" max="20"
+                           required inputmode="numeric" class="input-large">
+                </div>
+                <div class="form-group">
+                    <label for="reps">Reps</label>
+                    <input type="number" id="reps" name="reps" min="1" max="100"
+                           required inputmode="numeric" class="input-large">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="weight_kg">Weight (kg)</label>
+                    <input type="number" id="weight_kg" name="weight_kg" min="0" max="500"
+                           step="0.5" inputmode="decimal" class="input-large">
+                </div>
+                <div class="form-group">
+                    <label for="rpe">RPE (1-10)</label>
+                    <input type="number" id="rpe" name="rpe" min="1" max="10"
+                           inputmode="numeric" class="input-large">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="rest_seconds">Rest (seconds)</label>
+                <input type="number" id="rest_seconds" name="rest_seconds"
+                       min="0" max="600" inputmode="numeric">
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block btn-large">
+                Log Set
+            </button>
+        </form>
+    </section>
+
+    <!-- Finish Workout -->
+    <section class="card">
+        <h2>Finish Workout</h2>
+        <form method="POST" action="{{ url_for('workouts.finish_session', session_id=session.session_id) }}">
+            <div class="form-group">
+                <label for="duration_minutes">Total Duration (minutes)</label>
+                <input type="number" id="duration_minutes" name="duration_minutes"
+                       value="{{ session.duration_minutes or '' }}" inputmode="numeric">
+            </div>
+            <div class="form-group">
+                <label for="notes">Session Notes</label>
+                <textarea id="notes" name="notes" rows="2">{{ session.notes or '' }}</textarea>
+            </div>
+            <button type="submit" class="btn btn-success btn-block">
+                Complete Workout
+            </button>
+        </form>
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const exerciseSelect = document.getElementById('exercise_id');
+    const substituteSection = document.getElementById('substituteSection');
+    const showSubstitutesBtn = document.getElementById('showSubstitutes');
+    const substituteList = document.getElementById('substituteList');
+    const lastPerformance = document.getElementById('lastPerformance');
+    const lastDetails = document.getElementById('lastDetails');
+
+    // When exercise changes
+    exerciseSelect.addEventListener('change', function() {
+        const exerciseId = this.value;
+        if (!exerciseId) {
+            substituteSection.style.display = 'none';
+            lastPerformance.style.display = 'none';
+            return;
+        }
+
+        substituteSection.style.display = 'block';
+        substituteList.style.display = 'none';
+
+        // Fetch last performance
+        fetch(`/workouts/exercise/${exerciseId}/last-performance`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.found) {
+                    lastDetails.textContent = `${data.sets}x${data.reps} @ ${data.weight_kg}kg (${data.date})`;
+                    lastPerformance.style.display = 'block';
+
+                    // Pre-fill form
+                    document.getElementById('sets').value = data.sets;
+                    document.getElementById('reps').value = data.reps;
+                    document.getElementById('weight_kg').value = data.weight_kg || '';
+                } else {
+                    lastPerformance.style.display = 'none';
+                }
+            });
+    });
+
+    // Show substitutes
+    showSubstitutesBtn.addEventListener('click', function() {
+        const exerciseId = exerciseSelect.value;
+        if (!exerciseId) return;
+
+        fetch(`/workouts/exercise/${exerciseId}/substitutes`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.substitutes.length === 0) {
+                    substituteList.innerHTML = '<p>No substitutes defined for this exercise.</p>';
+                } else {
+                    let html = '<ul class="substitute-options">';
+                    data.substitutes.forEach(sub => {
+                        const lastInfo = sub.last_weight_kg
+                            ? `Last: ${sub.last_sets}x${sub.last_reps} @ ${sub.last_weight_kg}kg`
+                            : 'No previous data';
+                        html += `
+                            <li class="substitute-option" data-id="${sub.substitute_exercise_id}">
+                                <span class="sub-name">${sub.exercise_name}</span>
+                                <span class="sub-last">${lastInfo}</span>
+                            </li>
+                        `;
+                    });
+                    html += '</ul>';
+                    substituteList.innerHTML = html;
+
+                    // Add click handlers
+                    substituteList.querySelectorAll('.substitute-option').forEach(opt => {
+                        opt.addEventListener('click', function() {
+                            const subId = this.dataset.id;
+                            exerciseSelect.value = subId;
+                            exerciseSelect.dispatchEvent(new Event('change'));
+                            substituteList.style.display = 'none';
+                        });
+                    });
+                }
+                substituteList.style.display = 'block';
+            });
+    });
+});
+</script>
+{% endblock %}

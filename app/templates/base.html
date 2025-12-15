@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#1a1a2e">
+    <title>{% block title %}Workout Tracker{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    {% if current_user.is_authenticated %}
+    <nav class="navbar">
+        <div class="nav-brand">
+            <a href="{{ url_for('dashboard.index') }}">Workout Tracker</a>
+        </div>
+        <button class="nav-toggle" aria-label="Toggle navigation">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <div class="nav-menu">
+            <a href="{{ url_for('dashboard.index') }}" class="nav-link">Dashboard</a>
+            <a href="{{ url_for('workouts.index') }}" class="nav-link">Strength</a>
+            <a href="{{ url_for('running.index') }}" class="nav-link">Running</a>
+            <a href="{{ url_for('analytics.index') }}" class="nav-link">Analytics</a>
+            <a href="{{ url_for('auth.profile') }}" class="nav-link">Profile</a>
+            <a href="{{ url_for('auth.logout') }}" class="nav-link">Logout</a>
+        </div>
+    </nav>
+    {% endif %}
+
+    <main class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="flash flash-{{ category }}">
+                            {{ message }}
+                            <button class="flash-close">&times;</button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    {% if current_user.is_authenticated %}
+    <nav class="bottom-nav">
+        <a href="{{ url_for('dashboard.index') }}" class="bottom-nav-item">
+            <span class="icon">&#127968;</span>
+            <span>Home</span>
+        </a>
+        <a href="{{ url_for('workouts.new_session') }}" class="bottom-nav-item">
+            <span class="icon">&#128170;</span>
+            <span>Strength</span>
+        </a>
+        <a href="{{ url_for('running.new_session') }}" class="bottom-nav-item">
+            <span class="icon">&#127939;</span>
+            <span>Run</span>
+        </a>
+        <a href="{{ url_for('analytics.index') }}" class="bottom-nav-item">
+            <span class="icon">&#128200;</span>
+            <span>Stats</span>
+        </a>
+    </nav>
+    {% endif %}
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
