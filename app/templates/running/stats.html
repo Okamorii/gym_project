@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Running Stats - Workout Tracker{% endblock %}
+
+{% block content %}
+<div class="running-stats">
+    <header class="page-header">
+        <h1>Running Stats</h1>
+    </header>
+
+    <!-- Summary Cards -->
+    <div class="stats-grid card">
+        <div class="stat-item">
+            <span class="stat-value">{{ total_distance }}</span>
+            <span class="stat-label">Total km</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-value">{{ total_runs }}</span>
+            <span class="stat-label">Total Runs</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-value">{{ avg_distance }}</span>
+            <span class="stat-label">Avg km/run</span>
+        </div>
+    </div>
+
+    <!-- Personal Bests -->
+    <div class="card">
+        <h2>Personal Bests</h2>
+        {% if longest_run %}
+        <div class="pr-item">
+            <span class="pr-label">Longest Run</span>
+            <span class="pr-value">{{ longest_run.distance_km }} km</span>
+        </div>
+        {% endif %}
+        {% if fastest_pace %}
+        <div class="pr-item">
+            <span class="pr-label">Fastest Pace</span>
+            <span class="pr-value">{{ "%.1f"|format(fastest_pace.avg_pace_per_km) }} min/km</span>
+        </div>
+        {% endif %}
+        {% if not longest_run and not fastest_pace %}
+        <p class="empty-state-text">No personal bests recorded yet.</p>
+        {% endif %}
+    </div>
+
+    <!-- Recent Runs -->
+    <div class="card">
+        <h2>Recent Runs</h2>
+        {% if history %}
+        <ul class="stats-list">
+            {% for run in history[:10] %}
+            <li class="stats-list-item">
+                <span class="run-type-badge {{ run.run_type }} small">{{ run.run_type }}</span>
+                <span class="distance">{{ run.distance_km or '-' }} km</span>
+                <span class="duration">{{ run.duration_minutes or '-' }} min</span>
+                {% if run.avg_pace_per_km %}
+                <span class="pace">{{ "%.1f"|format(run.avg_pace_per_km) }}/km</span>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="empty-state-text">No runs logged yet.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

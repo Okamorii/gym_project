@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics - Workout Tracker{% endblock %}
+
+{% block content %}
+<div class="analytics-page">
+    <header class="page-header">
+        <h1>Analytics</h1>
+    </header>
+
+    <div class="analytics-nav">
+        <a href="{{ url_for('analytics.strength_analytics') }}" class="card analytics-card">
+            <span class="icon">&#128170;</span>
+            <h2>Strength</h2>
+            <p>Volume, PRs, progress</p>
+        </a>
+        <a href="{{ url_for('analytics.running_analytics') }}" class="card analytics-card">
+            <span class="icon">&#127939;</span>
+            <h2>Running</h2>
+            <p>Mileage, pace, trends</p>
+        </a>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="card">
+        <h2>This Week</h2>
+        <div id="weekly-summary" class="stats-grid">
+            <div class="stat-item">
+                <span class="stat-value" id="week-workouts">-</span>
+                <span class="stat-label">Workouts</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value" id="week-distance">-</span>
+                <span class="stat-label">km Run</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value" id="week-volume">-</span>
+                <span class="stat-label">kg Lifted</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent PRs -->
+    <div class="card">
+        <h2>Recent PRs</h2>
+        <div id="recent-prs">
+            <p class="loading">Loading...</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Load PR timeline
+fetch('{{ url_for("analytics.pr_timeline") }}')
+    .then(r => r.json())
+    .then(data => {
+        const container = document.getElementById('recent-prs');
+        if (data.length === 0) {
+            container.innerHTML = '<p class="empty-state-text">No PRs recorded yet.</p>';
+            return;
+        }
+        container.innerHTML = data.slice(0, 5).map(pr => `
+            <div class="pr-item">
+                <span class="pr-exercise">${pr.exercise}</span>
+                <span class="pr-value">${pr.value} ${pr.type === '1RM' ? 'kg' : ''}</span>
+                <span class="pr-date">${pr.date}</span>
+            </div>
+        `).join('');
+    })
+    .catch(() => {
+        document.getElementById('recent-prs').innerHTML = '<p class="empty-state-text">Could not load PRs.</p>';
+    });
+</script>
+{% endblock %}

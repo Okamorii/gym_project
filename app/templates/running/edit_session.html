@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Run - Workout Tracker{% endblock %}
+
+{% block content %}
+<div class="edit-run">
+    <header class="page-header">
+        <a href="{{ url_for('running.view_session', session_id=session.session_id) }}" class="btn btn-secondary">Cancel</a>
+        <h1>Edit Run</h1>
+    </header>
+
+    <form method="POST" class="card">
+        <div class="form-group">
+            <label for="session_date">Date</label>
+            <input type="date" id="session_date" name="session_date"
+                   value="{{ session.session_date }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="run_type">Run Type</label>
+            <select id="run_type" name="run_type" required>
+                {% for value, label, desc in run_types %}
+                <option value="{{ value }}" {% if run_log and run_log.run_type == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="distance_km">Distance (km)</label>
+                <input type="number" id="distance_km" name="distance_km"
+                       step="0.1" min="0" inputmode="decimal" class="input-large"
+                       value="{{ run_log.distance_km if run_log else '' }}">
+            </div>
+            <div class="form-group">
+                <label for="duration_minutes">Duration (min)</label>
+                <input type="number" id="duration_minutes" name="duration_minutes"
+                       min="0" inputmode="numeric" class="input-large"
+                       value="{{ run_log.duration_minutes if run_log else '' }}">
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="avg_heart_rate">Avg HR</label>
+                <input type="number" id="avg_heart_rate" name="avg_heart_rate"
+                       min="40" max="220" inputmode="numeric"
+                       value="{{ run_log.avg_heart_rate if run_log else '' }}">
+            </div>
+            <div class="form-group">
+                <label for="max_heart_rate">Max HR</label>
+                <input type="number" id="max_heart_rate" name="max_heart_rate"
+                       min="40" max="220" inputmode="numeric"
+                       value="{{ run_log.max_heart_rate if run_log else '' }}">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="elevation_gain_meters">Elevation Gain (m)</label>
+            <input type="number" id="elevation_gain_meters" name="elevation_gain_meters"
+                   min="0" inputmode="numeric"
+                   value="{{ run_log.elevation_gain_meters if run_log else '' }}">
+        </div>
+
+        <div class="form-group">
+            <label for="perceived_effort">How did it feel?</label>
+            <select id="perceived_effort" name="perceived_effort">
+                <option value="">Select...</option>
+                <option value="easy" {% if run_log and run_log.perceived_effort == 'easy' %}selected{% endif %}>Easy</option>
+                <option value="moderate" {% if run_log and run_log.perceived_effort == 'moderate' %}selected{% endif %}>Moderate</option>
+                <option value="hard" {% if run_log and run_log.perceived_effort == 'hard' %}selected{% endif %}>Hard</option>
+                <option value="very_hard" {% if run_log and run_log.perceived_effort == 'very_hard' %}selected{% endif %}>Very Hard</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="weather_conditions">Weather</label>
+            <input type="text" id="weather_conditions" name="weather_conditions"
+                   placeholder="e.g., Sunny, 20C"
+                   value="{{ run_log.weather_conditions if run_log else '' }}">
+        </div>
+
+        <div class="form-group">
+            <label for="route_notes">Route Notes</label>
+            <textarea id="route_notes" name="route_notes" rows="2"
+                      placeholder="Where did you run?">{{ run_log.route_notes if run_log else '' }}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="notes">Session Notes</label>
+            <textarea id="notes" name="notes" rows="2">{{ session.notes or '' }}</textarea>
+        </div>
+
+        <button type="submit" class="btn btn-success btn-block btn-large">
+            Save Changes
+        </button>
+    </form>
+</div>
+{% endblock %}

@@ -28,7 +28,7 @@ def strength_analytics():
     prs = PersonalRecord.get_user_records(current_user.user_id, record_type='1RM')
 
     return render_template(
-        'strength.html',
+        'analytics/strength.html',
         exercises=exercises,
         prs=prs
     )

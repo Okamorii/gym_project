@@ -34,7 +34,7 @@ def index():
     weekly_distance = RunningLog.get_weekly_mileage(current_user.user_id)
 
     return render_template(
-        'index.html',
+        'running/index.html',
         sessions=sessions,
         weekly_distance=weekly_distance,
         run_types=RUN_TYPES
@@ -157,7 +157,7 @@ def edit_session(session_id):
         return redirect(url_for('running.view_session', session_id=session_id))
 
     return render_template(
-        'edit_session.html',
+        'running/edit_session.html',
         session=session,
         run_log=run_log,
         run_types=RUN_TYPES
@@ -205,7 +205,7 @@ def stats():
         fastest_pace = None
 
     return render_template(
-        'stats.html',
+        'running/stats.html',
         history=history,
         total_distance=round(total_distance, 2),
         total_runs=total_runs,

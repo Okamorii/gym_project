@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Running Analytics - Workout Tracker{% endblock %}
+
+{% block content %}
+<div class="running-analytics">
+    <header class="page-header">
+        <a href="{{ url_for('analytics.index') }}" class="btn btn-secondary">Back</a>
+        <h1>Running Analytics</h1>
+    </header>
+
+    <!-- Weekly Mileage Chart -->
+    <div class="card">
+        <h2>Weekly Mileage</h2>
+        <div id="mileage-chart-container">
+            <canvas id="mileage-chart"></canvas>
+        </div>
+    </div>
+
+    <!-- Run Type Distribution -->
+    <div class="card">
+        <h2>Run Type Distribution</h2>
+        <div id="run-type-container">
+            <canvas id="run-type-chart"></canvas>
+        </div>
+    </div>
+
+    <!-- Training Load (TRIMP) -->
+    <div class="card">
+        <h2>Training Load Trend</h2>
+        <div id="trimp-chart-container">
+            <canvas id="trimp-chart"></canvas>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Weekly mileage chart
+fetch('{{ url_for("analytics.running_progress") }}')
+    .then(r => r.json())
+    .then(data => {
+        new Chart(document.getElementById('mileage-chart'), {
+            type: 'bar',
+            data: {
+                labels: data.map(d => d.week),
+                datasets: [{
+                    label: 'Distance (km)',
+                    data: data.map(d => d.distance),
+                    backgroundColor: '#4CAF50'
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+
+        // TRIMP chart
+        new Chart(document.getElementById('trimp-chart'), {
+            type: 'line',
+            data: {
+                labels: data.map(d => d.week),
+                datasets: [{
+                    label: 'Avg TRIMP',
+                    data: data.map(d => d.avg_trimp),
+                    borderColor: '#FF6384',
+                    tension: 0.1,
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+    });
+
+// Run type distribution
+fetch('{{ url_for("analytics.run_type_distribution") }}')
+    .then(r => r.json())
+    .then(data => {
+        new Chart(document.getElementById('run-type-chart'), {
+            type: 'pie',
+            data: {
+                labels: data.map(d => d.type),
+                datasets: [{
+                    data: data.map(d => d.count),
+                    backgroundColor: [
+                        '#4CAF50', '#2196F3', '#FF9800', '#9C27B0', '#607D8B'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true
+            }
+        });
+    });
+</script>
+{% endblock %}

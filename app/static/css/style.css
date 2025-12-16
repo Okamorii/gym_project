@@ -600,6 +600,292 @@ small {
 }
 
 /* ============================================
+   PAGE HEADERS
+   ============================================ */
+
+.page-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.page-header h1 {
+    flex: 1;
+}
+
+/* ============================================
+   ANALYTICS
+   ============================================ */
+
+.analytics-nav {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.analytics-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 1.5rem 1rem;
+    color: var(--text-primary);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.analytics-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.analytics-card .icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.analytics-card h2 {
+    margin-bottom: 0.25rem;
+}
+
+.analytics-card p {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+/* Stats in cards */
+.stat-item {
+    text-align: center;
+    padding: 0.5rem;
+}
+
+.stats-grid .stat-item {
+    display: flex;
+    flex-direction: column;
+}
+
+/* PR List styling */
+.pr-list {
+    list-style: none;
+}
+
+.pr-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.pr-exercise {
+    font-weight: 500;
+    flex: 1;
+    min-width: 120px;
+}
+
+.pr-value {
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.pr-date {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    width: 100%;
+    text-align: right;
+}
+
+@media (min-width: 480px) {
+    .pr-date {
+        width: auto;
+    }
+}
+
+/* Stats list */
+.stats-list {
+    list-style: none;
+}
+
+.stats-list-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.stats-list-item:last-child {
+    border-bottom: none;
+}
+
+/* Chart containers */
+#exercise-chart-container,
+#muscle-volume-container,
+#mileage-chart-container,
+#run-type-container,
+#trimp-chart-container {
+    position: relative;
+    min-height: 200px;
+    margin-top: 1rem;
+}
+
+/* Empty state */
+.empty-state-text {
+    color: var(--text-secondary);
+    text-align: center;
+    padding: 1rem 0;
+}
+
+.loading {
+    color: var(--text-secondary);
+    text-align: center;
+    padding: 1rem 0;
+}
+
+/* ============================================
+   RUNNING BADGES
+   ============================================ */
+
+.run-type-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: capitalize;
+    background: var(--bg-input);
+}
+
+.run-type-badge.easy { background: #22c55e33; color: #22c55e; }
+.run-type-badge.tempo { background: #f59e0b33; color: #f59e0b; }
+.run-type-badge.interval { background: #ef444433; color: #ef4444; }
+.run-type-badge.long { background: #6366f133; color: #6366f1; }
+.run-type-badge.other { background: #64748b33; color: #64748b; }
+
+.run-type-badge.large {
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+}
+
+.run-type-badge.small {
+    padding: 0.15rem 0.5rem;
+    font-size: 0.7rem;
+}
+
+/* ============================================
+   SESSION VIEW
+   ============================================ */
+
+.run-type-header {
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.detail-section {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+}
+
+.detail-section h3 {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+}
+
+.detail-row {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.effort-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 0.5rem;
+    text-transform: capitalize;
+}
+
+.effort-badge.easy { background: #22c55e33; color: #22c55e; }
+.effort-badge.moderate { background: #3b82f633; color: #3b82f6; }
+.effort-badge.hard { background: #f59e0b33; color: #f59e0b; }
+.effort-badge.very_hard { background: #ef444433; color: #ef4444; }
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.action-buttons .btn {
+    flex: 1;
+}
+
+.delete-form {
+    flex: 1;
+    display: flex;
+}
+
+.delete-form .btn {
+    flex: 1;
+}
+
+/* ============================================
+   PROFILE
+   ============================================ */
+
+.profile-page .card {
+    margin-bottom: 1.5rem;
+}
+
+.profile-page .card h2 {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+}
+
+.info-label {
+    color: var(--text-secondary);
+}
+
+.info-value {
+    font-weight: 500;
+}
+
+/* ============================================
+   EMPTY STATES
+   ============================================ */
+
+.empty-state {
+    text-align: center;
+    padding: 2rem 1rem;
+}
+
+.empty-state p {
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+}
+
+/* ============================================
+   PAGINATION
+   ============================================ */
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    color: var(--text-secondary);
+}
+
+/* ============================================
    RESPONSIVE
    ============================================ */
 

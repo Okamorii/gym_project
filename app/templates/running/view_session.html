@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Run Details - Workout Tracker{% endblock %}
+
+{% block content %}
+<div class="session-view">
+    <header class="page-header">
+        <a href="{{ url_for('running.index') }}" class="btn btn-secondary">Back</a>
+        <h1>{{ session.session_date.strftime('%A, %B %d') }}</h1>
+    </header>
+
+    <div class="card">
+        {% if run_log %}
+        <div class="run-type-header">
+            <span class="run-type-badge {{ run_log.run_type }} large">{{ run_log.run_type }}</span>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-item">
+                <span class="stat-value">{{ run_log.distance_km or '-' }}</span>
+                <span class="stat-label">km</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value">{{ run_log.duration_minutes or '-' }}</span>
+                <span class="stat-label">min</span>
+            </div>
+            {% if run_log.avg_pace_per_km %}
+            <div class="stat-item">
+                <span class="stat-value">{{ "%.1f"|format(run_log.avg_pace_per_km) }}</span>
+                <span class="stat-label">min/km</span>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if run_log.avg_heart_rate or run_log.max_heart_rate %}
+        <div class="detail-section">
+            <h3>Heart Rate</h3>
+            <div class="detail-row">
+                {% if run_log.avg_heart_rate %}
+                <span>Avg: {{ run_log.avg_heart_rate }} bpm</span>
+                {% endif %}
+                {% if run_log.max_heart_rate %}
+                <span>Max: {{ run_log.max_heart_rate }} bpm</span>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if run_log.elevation_gain_meters %}
+        <div class="detail-section">
+            <h3>Elevation</h3>
+            <p>{{ run_log.elevation_gain_meters }}m gain</p>
+        </div>
+        {% endif %}
+
+        {% if run_log.perceived_effort %}
+        <div class="detail-section">
+            <h3>Effort</h3>
+            <p class="effort-badge {{ run_log.perceived_effort }}">{{ run_log.perceived_effort }}</p>
+        </div>
+        {% endif %}
+
+        {% if run_log.trimp_score %}
+        <div class="detail-section">
+            <h3>Training Load (TRIMP)</h3>
+            <p>{{ run_log.trimp_score }}</p>
+        </div>
+        {% endif %}
+
+        {% if run_log.weather_conditions %}
+        <div class="detail-section">
+            <h3>Weather</h3>
+            <p>{{ run_log.weather_conditions }}</p>
+        </div>
+        {% endif %}
+
+        {% if run_log.route_notes %}
+        <div class="detail-section">
+            <h3>Route</h3>
+            <p>{{ run_log.route_notes }}</p>
+        </div>
+        {% endif %}
+        {% endif %}
+
+        {% if session.notes %}
+        <div class="detail-section">
+            <h3>Notes</h3>
+            <p>{{ session.notes }}</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="action-buttons">
+        <a href="{{ url_for('running.edit_session', session_id=session.session_id) }}" class="btn btn-secondary">Edit</a>
+        <form action="{{ url_for('running.delete_session', session_id=session.session_id) }}" method="POST" class="delete-form" onsubmit="return confirm('Delete this run?');">
+            <button type="submit" class="btn btn-danger">Delete</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}Strength Analytics - Workout Tracker{% endblock %}
+
+{% block content %}
+<div class="strength-analytics">
+    <header class="page-header">
+        <a href="{{ url_for('analytics.index') }}" class="btn btn-secondary">Back</a>
+        <h1>Strength Analytics</h1>
+    </header>
+
+    <!-- PRs Section -->
+    <div class="card">
+        <h2>Personal Records (1RM)</h2>
+        {% if prs %}
+        <div class="pr-list">
+            {% for pr in prs %}
+            <div class="pr-item">
+                <span class="pr-exercise">{{ pr.exercise.name if pr.exercise else 'Unknown' }}</span>
+                <span class="pr-value">{{ pr.value }} kg</span>
+                <span class="pr-date">{{ pr.date_achieved.strftime('%b %d, %Y') }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="empty-state-text">No PRs recorded yet. Keep lifting!</p>
+        {% endif %}
+    </div>
+
+    <!-- Exercise Progress -->
+    <div class="card">
+        <h2>Exercise Progress</h2>
+        {% if exercises %}
+        <div class="form-group">
+            <label for="exercise-select">Select Exercise</label>
+            <select id="exercise-select">
+                <option value="">Choose an exercise...</option>
+                {% for exercise in exercises %}
+                <option value="{{ exercise.exercise_id }}">{{ exercise.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div id="exercise-chart-container" style="display:none;">
+            <canvas id="exercise-chart"></canvas>
+        </div>
+        {% else %}
+        <p class="empty-state-text">No exercises logged yet.</p>
+        {% endif %}
+    </div>
+
+    <!-- Volume by Muscle Group -->
+    <div class="card">
+        <h2>Volume by Muscle Group</h2>
+        <div id="muscle-volume-container">
+            <canvas id="muscle-chart"></canvas>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Exercise progress chart
+const exerciseSelect = document.getElementById('exercise-select');
+const chartContainer = document.getElementById('exercise-chart-container');
+let exerciseChart = null;
+
+if (exerciseSelect) {
+    exerciseSelect.addEventListener('change', function() {
+        const exerciseId = this.value;
+        if (!exerciseId) {
+            chartContainer.style.display = 'none';
+            return;
+        }
+
+        fetch(`{{ url_for('analytics.exercise_progress', exercise_id=0) }}`.replace('0', exerciseId))
+            .then(r => r.json())
+            .then(data => {
+                chartContainer.style.display = 'block';
+
+                if (exerciseChart) exerciseChart.destroy();
+
+                exerciseChart = new Chart(document.getElementById('exercise-chart'), {
+                    type: 'line',
+                    data: {
+                        labels: data.map(d => d.date),
+                        datasets: [{
+                            label: 'Estimated 1RM (kg)',
+                            data: data.map(d => d.estimated_1rm),
+                            borderColor: '#4CAF50',
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: { beginAtZero: false }
+                        }
+                    }
+                });
+            });
+    });
+}
+
+// Muscle group volume chart
+fetch('{{ url_for("analytics.muscle_group_volume") }}')
+    .then(r => r.json())
+    .then(data => {
+        new Chart(document.getElementById('muscle-chart'), {
+            type: 'doughnut',
+            data: {
+                labels: data.map(d => d.muscle_group),
+                datasets: [{
+                    data: data.map(d => d.volume),
+                    backgroundColor: [
+                        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0',
+                        '#9966FF', '#FF9F40', '#C9CBCF', '#7BC225'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true
+            }
+        });
+    });
+</script>
+{% endblock %}
