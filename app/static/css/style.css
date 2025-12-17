@@ -1122,6 +1122,18 @@ small {
 }
 
 /* Chart containers */
+.chart-container {
+    position: relative;
+    height: 250px;
+    margin-top: 1rem;
+}
+
+.chart-container-sm {
+    position: relative;
+    height: 200px;
+    margin-top: 1rem;
+}
+
 #exercise-chart-container,
 #muscle-volume-container,
 #mileage-chart-container,
@@ -1130,6 +1142,56 @@ small {
     position: relative;
     min-height: 200px;
     margin-top: 1rem;
+}
+
+/* Date range filter */
+.date-range-filter {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+}
+
+.range-btn {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+}
+
+.range-btn.active {
+    background: var(--primary);
+    border-color: var(--primary);
+}
+
+/* Mini stats row */
+.mini-stats {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+}
+
+.mini-stat {
+    text-align: center;
+}
+
+.mini-stat-value {
+    display: block;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.mini-stat-value.positive {
+    color: var(--success);
+}
+
+.mini-stat-value.negative {
+    color: var(--danger);
+}
+
+.mini-stat-label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
 }
 
 /* Empty state */

@@ -21,22 +21,11 @@
         </a>
     </div>
 
-    <!-- Quick Stats -->
+    <!-- Workout Frequency -->
     <div class="card">
-        <h2>This Week</h2>
-        <div id="weekly-summary" class="stats-grid">
-            <div class="stat-item">
-                <span class="stat-value" id="week-workouts">-</span>
-                <span class="stat-label">Workouts</span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-value" id="week-distance">-</span>
-                <span class="stat-label">km Run</span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-value" id="week-volume">-</span>
-                <span class="stat-label">kg Lifted</span>
-            </div>
+        <h2>Workout Frequency</h2>
+        <div class="chart-container">
+            <canvas id="frequency-chart"></canvas>
         </div>
     </div>
 
@@ -47,11 +36,27 @@
             <p class="loading">Loading...</p>
         </div>
     </div>
+
+    <!-- Recovery Trends -->
+    <div class="card">
+        <h2>Recovery Trends</h2>
+        <div class="chart-container">
+            <canvas id="recovery-chart"></canvas>
+        </div>
+        <div id="recovery-empty" class="empty-state-text" style="display:none;">
+            No recovery data yet. Start logging your recovery!
+        </div>
+    </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+// Chart.js dark theme defaults
+Chart.defaults.color = '#a0a0b0';
+Chart.defaults.borderColor = '#2a2a40';
+
 // Load PR timeline
 fetch('{{ url_for("analytics.pr_timeline") }}')
     .then(r => r.json())
@@ -71,6 +76,104 @@ fetch('{{ url_for("analytics.pr_timeline") }}')
     })
     .catch(() => {
         document.getElementById('recent-prs').innerHTML = '<p class="empty-state-text">Could not load PRs.</p>';
+    });
+
+// Workout frequency chart
+fetch('{{ url_for("analytics.workout_frequency") }}')
+    .then(r => r.json())
+    .then(data => {
+        const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        new Chart(document.getElementById('frequency-chart'), {
+            type: 'bar',
+            data: {
+                labels: days,
+                datasets: [
+                    {
+                        label: 'Strength',
+                        data: days.map(d => data[d]?.strength || 0),
+                        backgroundColor: '#6366f1'
+                    },
+                    {
+                        label: 'Running',
+                        data: days.map(d => data[d]?.running || 0),
+                        backgroundColor: '#22c55e'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1 },
+                        grid: { color: '#2a2a40' }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    });
+
+// Recovery trends chart
+fetch('{{ url_for("analytics.recovery_trends") }}')
+    .then(r => r.json())
+    .then(data => {
+        if (data.length === 0) {
+            document.getElementById('recovery-chart').style.display = 'none';
+            document.getElementById('recovery-empty').style.display = 'block';
+            return;
+        }
+        new Chart(document.getElementById('recovery-chart'), {
+            type: 'line',
+            data: {
+                labels: data.map(d => d.week),
+                datasets: [
+                    {
+                        label: 'Sleep',
+                        data: data.map(d => d.sleep),
+                        borderColor: '#6366f1',
+                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                        tension: 0.3,
+                        fill: true
+                    },
+                    {
+                        label: 'Energy',
+                        data: data.map(d => d.energy),
+                        borderColor: '#22c55e',
+                        tension: 0.3
+                    },
+                    {
+                        label: 'Motivation',
+                        data: data.map(d => d.motivation),
+                        borderColor: '#f59e0b',
+                        tension: 0.3
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' }
+                },
+                scales: {
+                    y: {
+                        min: 0,
+                        max: 10,
+                        grid: { color: '#2a2a40' }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
     });
 </script>
 {% endblock %}

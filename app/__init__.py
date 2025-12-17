@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_jwt_extended import JWTManager
@@ -53,5 +53,10 @@ def create_app(config_name='default'):
     @login_manager.user_loader
     def load_user(user_id):
         return User.query.get(int(user_id))
+
+    # Offline page route
+    @app.route('/offline.html')
+    def offline():
+        return render_template('offline.html')
 
     return app

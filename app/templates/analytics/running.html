@@ -9,10 +9,41 @@
         <h1>Running Analytics</h1>
     </header>
 
+    <!-- Date Range Filter -->
+    <div class="card filter-card">
+        <div class="date-range-filter">
+            <button class="btn btn-sm range-btn active" data-weeks="4">4 weeks</button>
+            <button class="btn btn-sm range-btn" data-weeks="8">8 weeks</button>
+            <button class="btn btn-sm range-btn" data-weeks="12">12 weeks</button>
+        </div>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="card">
+        <div id="running-summary" class="stats-grid">
+            <div class="stat-item">
+                <span class="stat-value" id="total-distance">-</span>
+                <span class="stat-label">Total km</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value" id="total-runs">-</span>
+                <span class="stat-label">Runs</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value" id="avg-distance">-</span>
+                <span class="stat-label">Avg km/run</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value" id="total-time">-</span>
+                <span class="stat-label">Total hours</span>
+            </div>
+        </div>
+    </div>
+
     <!-- Weekly Mileage Chart -->
     <div class="card">
         <h2>Weekly Mileage</h2>
-        <div id="mileage-chart-container">
+        <div id="mileage-chart-container" class="chart-container">
             <canvas id="mileage-chart"></canvas>
         </div>
     </div>
@@ -20,15 +51,21 @@
     <!-- Run Type Distribution -->
     <div class="card">
         <h2>Run Type Distribution</h2>
-        <div id="run-type-container">
+        <div id="run-type-container" class="chart-container-sm">
             <canvas id="run-type-chart"></canvas>
+        </div>
+        <div id="run-type-empty" class="empty-state-text" style="display:none;">
+            No runs logged yet.
         </div>
     </div>
 
     <!-- Training Load (TRIMP) -->
     <div class="card">
         <h2>Training Load Trend</h2>
-        <div id="trimp-chart-container">
+        <p class="text-muted" style="margin-bottom: 1rem; font-size: 0.85rem;">
+            TRIMP (Training Impulse) measures training stress based on duration and heart rate.
+        </p>
+        <div id="trimp-chart-container" class="chart-container">
             <canvas id="trimp-chart"></canvas>
         </div>
     </div>
@@ -38,69 +75,152 @@
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-// Weekly mileage chart
-fetch('{{ url_for("analytics.running_progress") }}')
-    .then(r => r.json())
-    .then(data => {
-        new Chart(document.getElementById('mileage-chart'), {
-            type: 'bar',
-            data: {
-                labels: data.map(d => d.week),
-                datasets: [{
-                    label: 'Distance (km)',
-                    data: data.map(d => d.distance),
-                    backgroundColor: '#4CAF50'
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: { beginAtZero: true }
-                }
-            }
-        });
+// Chart.js dark theme defaults
+Chart.defaults.color = '#a0a0b0';
+Chart.defaults.borderColor = '#2a2a40';
 
-        // TRIMP chart
-        new Chart(document.getElementById('trimp-chart'), {
-            type: 'line',
-            data: {
-                labels: data.map(d => d.week),
-                datasets: [{
-                    label: 'Avg TRIMP',
-                    data: data.map(d => d.avg_trimp),
-                    borderColor: '#FF6384',
-                    tension: 0.1,
-                    fill: false
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: { beginAtZero: true }
-                }
-            }
-        });
-    });
+let mileageChart = null;
+let trimpChart = null;
+let runTypeChart = null;
+let currentWeeks = 4;
 
-// Run type distribution
+function loadRunningData(weeks) {
+    fetch(`{{ url_for("analytics.running_progress") }}?weeks=${weeks}`)
+        .then(r => r.json())
+        .then(data => {
+            // Update summary stats
+            const totalDist = data.reduce((sum, d) => sum + d.distance, 0);
+            const totalRuns = data.reduce((sum, d) => sum + d.runs, 0);
+            const totalMin = data.reduce((sum, d) => sum + d.duration, 0);
+
+            document.getElementById('total-distance').textContent = totalDist.toFixed(1);
+            document.getElementById('total-runs').textContent = totalRuns;
+            document.getElementById('avg-distance').textContent = totalRuns > 0 ? (totalDist / totalRuns).toFixed(1) : '-';
+            document.getElementById('total-time').textContent = (totalMin / 60).toFixed(1);
+
+            // Mileage chart
+            if (mileageChart) mileageChart.destroy();
+            mileageChart = new Chart(document.getElementById('mileage-chart'), {
+                type: 'bar',
+                data: {
+                    labels: data.map(d => d.week.slice(5)),
+                    datasets: [{
+                        label: 'Distance (km)',
+                        data: data.map(d => d.distance),
+                        backgroundColor: '#22c55e',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: '#2a2a40' }
+                        },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+
+            // TRIMP chart
+            if (trimpChart) trimpChart.destroy();
+            trimpChart = new Chart(document.getElementById('trimp-chart'), {
+                type: 'line',
+                data: {
+                    labels: data.map(d => d.week.slice(5)),
+                    datasets: [{
+                        label: 'Avg TRIMP',
+                        data: data.map(d => d.avg_trimp),
+                        borderColor: '#ef4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: '#2a2a40' }
+                        },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        });
+}
+
+// Run type distribution (doesn't need date filter)
 fetch('{{ url_for("analytics.run_type_distribution") }}')
     .then(r => r.json())
     .then(data => {
-        new Chart(document.getElementById('run-type-chart'), {
-            type: 'pie',
+        if (data.length === 0) {
+            document.getElementById('run-type-chart').style.display = 'none';
+            document.getElementById('run-type-empty').style.display = 'block';
+            return;
+        }
+
+        const typeColors = {
+            'easy': '#22c55e',
+            'tempo': '#f59e0b',
+            'interval': '#ef4444',
+            'long': '#6366f1',
+            'other': '#64748b'
+        };
+
+        runTypeChart = new Chart(document.getElementById('run-type-chart'), {
+            type: 'doughnut',
             data: {
-                labels: data.map(d => d.type),
+                labels: data.map(d => d.type.charAt(0).toUpperCase() + d.type.slice(1)),
                 datasets: [{
-                    data: data.map(d => d.count),
-                    backgroundColor: [
-                        '#4CAF50', '#2196F3', '#FF9800', '#9C27B0', '#607D8B'
-                    ]
+                    data: data.map(d => d.distance),
+                    backgroundColor: data.map(d => typeColors[d.type] || '#64748b'),
+                    borderColor: '#1a1a2e',
+                    borderWidth: 2
                 }]
             },
             options: {
-                responsive: true
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: { boxWidth: 12, padding: 15 }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const d = data[context.dataIndex];
+                                return `${d.distance.toFixed(1)} km (${d.count} runs)`;
+                            }
+                        }
+                    }
+                }
             }
         });
     });
+
+// Date range buttons
+document.querySelectorAll('.range-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        currentWeeks = parseInt(this.dataset.weeks);
+        loadRunningData(currentWeeks);
+    });
+});
+
+// Initial load
+loadRunningData(currentWeeks);
 </script>
 {% endblock %}

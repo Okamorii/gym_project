@@ -178,7 +178,7 @@ A Flask-based workout tracking application for monitoring upper body strength tr
 
 ---
 
-### 5. Bug Fixes Applied This Session
+### 5. Bug Fixes Applied (Previous Sessions)
 
 1. **Template Path Fixes in Running Blueprint:**
    - `index()` - Changed `'index.html'` to `'running/index.html'`
@@ -212,30 +212,134 @@ A Flask-based workout tracking application for monitoring upper body strength tr
 
 ---
 
+### 6. Features Completed (December 17, 2025)
+
+#### 6.1 Missing Workout View Template
+- Created `workouts/view_session.html` with session details, exercise logs, stats grid, and action buttons
+
+#### 6.2 Dashboard Bug Fix
+- Fixed `now()` undefined error by passing `datetime.now()` to template context
+- Changed template from `now()` function call to `now` variable
+
+#### 6.3 Recovery Logging UI
+**New Blueprint:** `/app/blueprints/recovery/__init__.py`
+- `GET /recovery/` - List recovery logs with 7-day averages
+- `GET/POST /recovery/log` - Log daily recovery with slider inputs
+- `GET /recovery/<id>` - View recovery log details
+- `POST /recovery/<id>/delete` - Delete recovery log
+
+**New Templates:**
+- `recovery/index.html` - Recovery dashboard with weekly stats
+- `recovery/log.html` - Form with sliders (Sleep, Energy, Soreness, Motivation 1-10)
+- `recovery/view.html` - Detailed view with progress bars
+
+**Features:**
+- Slider-based input for better mobile UX
+- Auto-update existing log if same date
+- Overall recovery score calculation
+- Color-coded scores (good/moderate/poor)
+
+#### 6.4 Exercise Library Browser
+**New Blueprint:** `/app/blueprints/exercises/__init__.py`
+- `GET /exercises/` - Browse & filter exercises
+- `GET /exercises/<id>` - View exercise details with history
+- `GET/POST /exercises/new` - Create new exercises
+- `GET/POST /exercises/<id>/edit` - Edit exercises
+- `GET/POST /exercises/<id>/substitutes` - Manage substitutes
+- `GET /exercises/api/search` - AJAX search endpoint
+
+**New Templates:**
+- `exercises/index.html` - Filterable list grouped by muscle
+- `exercises/view.html` - Details, personal stats, history, substitutes
+- `exercises/new.html` - Create form with datalist suggestions
+- `exercises/edit.html` - Edit form
+- `exercises/substitutes.html` - Manage substitute relationships
+
+**Features:**
+- Filter by muscle group, type (strength/cardio), or search
+- Personal best 1RM display
+- Recent workout history per exercise
+- Bidirectional substitute management
+
+#### 6.5 Analytics Visualization Enhancement
+**Updated Templates with Chart.js:**
+
+`analytics/index.html`:
+- Workout frequency chart by day of week
+- Recovery trends line chart
+- Recent PRs list
+- Dark theme styling
+
+`analytics/strength.html`:
+- Exercise progress dual-line chart (Est. 1RM + Weight)
+- Mini stats (Best 1RM, Latest 1RM, Progress %)
+- Muscle group volume doughnut chart
+- Weekly volume trend stacked bar chart
+
+`analytics/running.html`:
+- Date range filter (4/8/12 weeks)
+- Summary stats (total km, runs, avg, hours)
+- Weekly mileage bar chart
+- Run type distribution doughnut
+- Training load (TRIMP) trend chart
+
+**CSS Additions:**
+- Chart containers with fixed heights
+- Date range filter buttons
+- Mini stats row with positive/negative colors
+
+#### 6.6 PWA Features (Progressive Web App)
+**manifest.json** (`/static/manifest.json`):
+- App name, icons (72px-512px), theme colors
+- Standalone display mode
+- App shortcuts for quick logging
+
+**Service Worker** (`/static/sw.js`):
+- Static asset caching
+- Network-first for HTML, cache-first for static
+- Offline fallback page
+- Background sync support
+
+**Offline Page** (`/templates/offline.html`):
+- User-friendly offline message
+- Retry button
+
+**iOS Support:**
+- `apple-mobile-web-app-capable`
+- `apple-touch-icon`
+- Status bar styling
+
+**Base Template Updates:**
+- Service worker registration
+- PWA meta tags
+- Viewport with `viewport-fit=cover`
+
+---
+
 ## Next Steps To Do
 
-### Phase 1: Exercise Library (Priority)
-1. **Exercise Library Browser** - View all exercises with descriptions, muscle groups, video links
-2. **Exercise Creation UI** - Form to add new exercises to the library
-3. **Exercise Substitutes Management** - UI to define equivalent/replacement exercises for each exercise
-4. **Exercise Edit/Delete** - Ability to modify or remove exercises
+### ~~Phase 1: Exercise Library~~ ✅ COMPLETED
+~~1. **Exercise Library Browser** - View all exercises with descriptions, muscle groups, video links~~
+~~2. **Exercise Creation UI** - Form to add new exercises to the library~~
+~~3. **Exercise Substitutes Management** - UI to define equivalent/replacement exercises for each exercise~~
+~~4. **Exercise Edit/Delete** - Ability to modify or remove exercises~~
 
-### Phase 2: Core Functionality Completion
-5. **Dashboard Content** - Wire up actual stats, quick actions, PR feed, weekly progress display
-6. **Workout Session View/Edit** - Create `view_session.html` and `edit_session.html` for strength workouts
-7. **Recovery Logging UI** - Web interface to log daily sleep, energy, soreness, motivation
+### ~~Phase 2: Core Functionality Completion~~ ✅ COMPLETED
+~~5. **Dashboard Content** - Wire up actual stats, quick actions, PR feed, weekly progress display~~
+~~6. **Workout Session View/Edit** - Create `view_session.html` for strength workouts~~
+~~7. **Recovery Logging UI** - Web interface to log daily sleep, energy, soreness, motivation~~
 8. **PR Detection & Celebration** - Show PR notifications/badges when beating records during logging
 
-### Phase 3: Alerts & UX Improvements
+### ~~Phase 3: Alerts & UX Improvements~~ ✅ MOSTLY COMPLETED
 9. **Volume Spike Alerts** - Display warnings prominently when running >10% or lifting >20% volume increase
 10. **Mobile Nav Toggle** - Implement hamburger menu functionality in app.js
-11. **PWA Setup** - Create manifest.json and service worker for offline capability and home screen install
+~~11. **PWA Setup** - Create manifest.json and service worker for offline capability and home screen install~~
 
 ### Phase 4: Planning & Data Management
 12. **Weekly Planning** - Template and plan upcoming workouts
 13. **Data Export** - CSV export for backup
 14. **Error Validation UI** - Client-side validation, unusual entry warnings (e.g., 400kg bench press)
-15. **Chart Improvements** - More interactive charts, date range filters
+~~15. **Chart Improvements** - More interactive charts, date range filters~~
 
 ### Phase 5: Production Deployment
 16. **Systemd Service** - Create service file to run Flask app permanently in background
@@ -249,13 +353,42 @@ A Flask-based workout tracking application for monitoring upper body strength tr
 ~~22. **Environment Variables** - Move secrets to `.env` file for Docker~~
 ~~23. **Docker Documentation** - Update README with Docker commands~~
 
-**Benefits of Docker:**
-- Single command deployment: `docker compose up -d`
-- Portable across servers
-- Isolated environment
-- Easy backup/restore with volumes
-- Auto-restart on failure/reboot
-- Consistent dev/prod environment
+---
+
+## Remaining Tasks (Priority Order)
+
+1. **PR Detection & Celebration** - Show PR badges/notifications during workout logging
+2. **Volume Spike Alerts UI** - More prominent display of volume spike warnings
+3. **Mobile Nav Toggle** - Hamburger menu JavaScript functionality
+4. **Weekly Planning** - Plan upcoming workouts feature
+5. **Data Export** - CSV export for backup
+6. **Error Validation UI** - Client-side validation for unusual entries
+
+---
+
+## Completion Status
+
+| Feature | Status |
+|---------|--------|
+| Database Schema | ✅ Complete |
+| Flask App Structure | ✅ Complete |
+| Auth (Login/Register/Profile) | ✅ Complete |
+| Dashboard | ✅ Complete |
+| Strength Workouts | ✅ Complete |
+| Running Sessions | ✅ Complete |
+| Recovery Logging | ✅ Complete |
+| Exercise Library | ✅ Complete |
+| Analytics & Charts | ✅ Complete |
+| PWA (Installable App) | ✅ Complete |
+| Docker Deployment | ✅ Complete |
+| REST API (JWT) | ✅ Complete |
+| PR Detection UI | Pending |
+| Volume Spike Alerts | Partial |
+| Mobile Nav Toggle | Pending |
+| Weekly Planning | Pending |
+| Data Export | Pending |
+
+**Overall: ~90% Complete**
 
 ---
 
