@@ -242,15 +242,15 @@ A Flask-based workout tracking application for monitoring upper body strength tr
 17. **Gunicorn Setup** - Production WSGI server instead of Flask dev server
 18. **Nginx Reverse Proxy** - (Optional) For SSL and better performance
 
-### Phase 6: Docker Containerization (Recommended)
-19. **Dockerfile** - Create Docker image for the Flask app
-20. **docker-compose.yml** - Orchestrate Flask + PostgreSQL containers
-21. **Docker Volumes** - Persist database data and uploads
-22. **Environment Variables** - Move secrets to `.env` file for Docker
-23. **Docker Documentation** - Update README with Docker commands
+### ~~Phase 6: Docker Containerization~~ ✅ COMPLETED
+~~19. **Dockerfile** - Create Docker image for the Flask app~~
+~~20. **docker-compose.yml** - Orchestrate Flask + PostgreSQL containers~~
+~~21. **Docker Volumes** - Persist database data and uploads~~
+~~22. **Environment Variables** - Move secrets to `.env` file for Docker~~
+~~23. **Docker Documentation** - Update README with Docker commands~~
 
 **Benefits of Docker:**
-- Single command deployment: `docker-compose up -d`
+- Single command deployment: `docker compose up -d`
 - Portable across servers
 - Isolated environment
 - Easy backup/restore with volumes
@@ -332,6 +332,104 @@ sudo systemctl stop workout-tracker
 
 **App URL:** http://192.168.0.117:5000
 
+### Docker Deployment (Recommended)
+
+Docker provides the easiest deployment method with automatic database setup and container orchestration.
+
+**Prerequisites:**
+- Docker Engine 20.10+
+- Docker Compose v2.0+
+
+**Quick Start:**
+```bash
+# Clone and navigate to project
+cd /root/gym
+
+# Copy environment file and customize
+cp .env.example .env
+nano .env  # Edit secrets
+
+# Build and start containers
+docker compose up -d
+
+# View logs
+docker compose logs -f
+
+# App will be available at http://192.168.0.117:5000
+```
+
+**Using Makefile Commands:**
+```bash
+# Show all available commands
+make help
+
+# Build images
+make build
+
+# Start containers
+make up
+
+# Stop containers
+make down
+
+# View logs
+make logs
+
+# Open shell in web container
+make shell
+
+# Connect to database
+make db-shell
+
+# Backup database
+make backup
+
+# Restore database
+make restore FILE=backups/backup_XXXXXX.sql
+
+# Clean up everything (including data)
+make clean
+```
+
+**Docker Files:**
+| File | Purpose |
+|------|---------|
+| `Dockerfile` | Flask app image definition |
+| `docker-compose.yml` | Multi-container orchestration |
+| `docker-entrypoint.sh` | Startup script with DB init |
+| `.dockerignore` | Files excluded from image |
+| `.env.example` | Environment template |
+| `Makefile` | Convenience commands |
+
+**Environment Variables:**
+```bash
+# Flask
+FLASK_ENV=production
+SECRET_KEY=your-secret-key
+JWT_SECRET_KEY=your-jwt-secret
+
+# Database
+POSTGRES_USER=workout
+POSTGRES_PASSWORD=workout123
+POSTGRES_DB=workout_tracker
+```
+
+**Volumes:**
+- `workout_postgres_data` - PostgreSQL data persistence
+- `workout_uploads_data` - File uploads (if any)
+
+**Container Architecture:**
+```
+┌─────────────────────────────────────────┐
+│           workout_network               │
+│  ┌─────────────┐    ┌─────────────────┐ │
+│  │  workout_db │◄───│  workout_app    │ │
+│  │  (postgres) │    │  (flask/gunicorn)│ │
+│  │  :5432      │    │  :5000          │ │
+│  └─────────────┘    └─────────────────┘ │
+└─────────────────────────────────────────┘
+```
+
 ---
 
 ## Key Files Reference
@@ -346,5 +444,8 @@ sudo systemctl stop workout-tracker
 | `app/templates/base.html` | Base template |
 | `app/static/css/style.css` | All styles |
 | `run.py` | App entry point |
+| `Dockerfile` | Docker image definition |
+| `docker-compose.yml` | Container orchestration |
+| `Makefile` | Docker convenience commands |
 | `project.md` | Original requirements |
 | `CLAUDE.md` | Claude Code instructions |

@@ -1,0 +1,58 @@
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:16-alpine
+    container_name: workout_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-workout}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-workout123}
+      POSTGRES_DB: ${POSTGRES_DB:-workout_tracker}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./setup_database.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-workout} -d ${POSTGRES_DB:-workout_tracker}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - workout_network
+
+  # Flask Application
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: workout_app
+    restart: unless-stopped
+    environment:
+      FLASK_ENV: ${FLASK_ENV:-production}
+      SECRET_KEY: ${SECRET_KEY:-change-this-in-production}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-change-this-jwt-secret}
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-workout}:${POSTGRES_PASSWORD:-workout123}@db:5432/${POSTGRES_DB:-workout_tracker}
+    ports:
+      - "5000:5000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      # Mount for development hot-reload (optional, remove in production)
+      # - ./app:/app/app:ro
+      # Persist any uploads
+      - uploads_data:/app/app/static/uploads
+    networks:
+      - workout_network
+
+volumes:
+  postgres_data:
+    name: workout_postgres_data
+  uploads_data:
+    name: workout_uploads_data
+
+networks:
+  workout_network:
+    name: workout_network
+    driver: bridge
