@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Recovery - Workout Tracker{% endblock %}
+
+{% block content %}
+<div class="recovery-page">
+    <header class="page-header">
+        <h1>Recovery Tracking</h1>
+        <a href="{{ url_for('recovery.log_recovery') }}" class="btn btn-primary">
+            {% if today_log %}Update Today{% else %}Log Today{% endif %}
+        </a>
+    </header>
+
+    <!-- Weekly Average -->
+    {% if weekly_avg %}
+    <section class="card">
+        <h2>7-Day Average</h2>
+        <div class="recovery-grid">
+            <div class="recovery-item">
+                <span class="recovery-label">Sleep</span>
+                <span class="recovery-value">{{ weekly_avg.avg_sleep }}/10</span>
+            </div>
+            <div class="recovery-item">
+                <span class="recovery-label">Energy</span>
+                <span class="recovery-value">{{ weekly_avg.avg_energy }}/10</span>
+            </div>
+            <div class="recovery-item">
+                <span class="recovery-label">Soreness</span>
+                <span class="recovery-value">{{ weekly_avg.avg_soreness }}/10</span>
+            </div>
+            <div class="recovery-item">
+                <span class="recovery-label">Motivation</span>
+                <span class="recovery-value">{{ weekly_avg.avg_motivation }}/10</span>
+            </div>
+        </div>
+        <p class="text-muted text-center">Based on {{ weekly_avg.logs_count }} logs</p>
+    </section>
+    {% endif %}
+
+    <!-- Recent Logs -->
+    <section class="card">
+        <h2>Recent Logs</h2>
+        {% if logs %}
+        <ul class="recovery-log-list">
+            {% for log in logs %}
+            <li class="recovery-log-item">
+                <a href="{{ url_for('recovery.view_log', recovery_id=log.recovery_id) }}">
+                    <div class="log-date">
+                        {{ log.log_date.strftime('%a, %b %d') }}
+                        {% if today_log and log.log_date == today_log.log_date %}
+                        <span class="badge">Today</span>
+                        {% endif %}
+                    </div>
+                    <div class="log-metrics">
+                        <span title="Sleep">{{ log.sleep_quality or '-' }}</span>
+                        <span title="Energy">{{ log.energy_level or '-' }}</span>
+                        <span title="Soreness">{{ log.muscle_soreness or '-' }}</span>
+                        <span title="Motivation">{{ log.motivation_score or '-' }}</span>
+                    </div>
+                    <div class="log-overall">
+                        {% if log.overall_recovery_score %}
+                        <span class="overall-score {% if log.overall_recovery_score >= 7 %}good{% elif log.overall_recovery_score >= 5 %}moderate{% else %}poor{% endif %}">
+                            {{ log.overall_recovery_score }}
+                        </span>
+                        {% endif %}
+                    </div>
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="empty-state">No recovery logs yet. Start tracking today!</p>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}

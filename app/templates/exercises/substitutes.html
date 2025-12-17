@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Substitutes - {{ exercise.name }}{% endblock %}
+
+{% block content %}
+<div class="manage-substitutes">
+    <header class="page-header">
+        <a href="{{ url_for('exercises.view', exercise_id=exercise.exercise_id) }}" class="btn btn-secondary">Back</a>
+        <h1>Substitutes</h1>
+    </header>
+
+    <div class="card">
+        <p class="text-muted">Manage alternative exercises for <strong>{{ exercise.name }}</strong>. Substitutions are bidirectional - adding a substitute links both exercises.</p>
+    </div>
+
+    <!-- Current Substitutes -->
+    <div class="card">
+        <h2>Current Substitutes</h2>
+        {% if current_subs %}
+        <ul class="substitute-manage-list">
+            {% for sub in current_subs %}
+            <li class="substitute-manage-item">
+                <div class="sub-info">
+                    <span class="sub-name">{{ sub.name }}</span>
+                    <span class="sub-muscle">{{ sub.muscle_group }}</span>
+                </div>
+                <form method="POST" class="sub-remove-form">
+                    <input type="hidden" name="action" value="remove">
+                    <input type="hidden" name="substitute_id" value="{{ sub.exercise_id }}">
+                    <button type="submit" class="btn btn-sm btn-danger">Remove</button>
+                </form>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-muted">No substitutes defined yet.</p>
+        {% endif %}
+    </div>
+
+    <!-- Add New Substitute -->
+    <div class="card">
+        <h2>Add Substitute</h2>
+        {% if available %}
+        <form method="POST">
+            <input type="hidden" name="action" value="add">
+            <div class="form-group">
+                <label for="substitute_id">Select Exercise</label>
+                <select id="substitute_id" name="substitute_id" required>
+                    <option value="">Choose an exercise...</option>
+                    {% set current_group = namespace(value='') %}
+                    {% for ex in available %}
+                    {% if ex.muscle_group != current_group.value %}
+                    {% if current_group.value != '' %}</optgroup>{% endif %}
+                    {% set current_group.value = ex.muscle_group %}
+                    <optgroup label="{{ ex.muscle_group or 'Other' }}">
+                    {% endif %}
+                    <option value="{{ ex.exercise_id }}">{{ ex.name }}</option>
+                    {% endfor %}
+                    </optgroup>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Add Substitute</button>
+        </form>
+        {% else %}
+        <p class="text-muted">No more {{ exercise.exercise_type }} exercises available to add as substitutes.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

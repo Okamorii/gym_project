@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}{{ exercise.name }} - Workout Tracker{% endblock %}
+
+{% block content %}
+<div class="exercise-view">
+    <header class="page-header">
+        <a href="{{ url_for('exercises.index') }}" class="btn btn-secondary">Back</a>
+        <h1>{{ exercise.name }}</h1>
+    </header>
+
+    <div class="card">
+        <div class="exercise-header">
+            <span class="exercise-type-badge {{ exercise.exercise_type }} large">{{ exercise.exercise_type }}</span>
+            {% if exercise.muscle_group %}
+            <span class="muscle-group-badge">{{ exercise.muscle_group }}</span>
+            {% endif %}
+        </div>
+
+        {% if exercise.description %}
+        <div class="detail-section">
+            <h3>Description</h3>
+            <p>{{ exercise.description }}</p>
+        </div>
+        {% endif %}
+
+        {% if exercise.video_reference_url %}
+        <div class="detail-section">
+            <h3>Video Reference</h3>
+            <a href="{{ exercise.video_reference_url }}" target="_blank" class="btn btn-secondary btn-sm">
+                Watch Video
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Personal Stats -->
+    {% if best_1rm %}
+    <div class="card">
+        <h2>Your Stats</h2>
+        <div class="stats-grid">
+            <div class="stat-item">
+                <span class="stat-value">{{ best_1rm }}kg</span>
+                <span class="stat-label">Best Est. 1RM</span>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Recent History -->
+    {% if history %}
+    <div class="card">
+        <h2>Recent History</h2>
+        <ul class="history-list">
+            {% for log in history %}
+            <li class="history-item">
+                <span class="history-date">{{ log.session.session_date.strftime('%b %d') }}</span>
+                <span class="history-details">{{ log.sets }}x{{ log.reps }} @ {{ log.weight_kg or 0 }}kg</span>
+                {% if log.rpe %}<span class="history-rpe">RPE {{ log.rpe }}</span>{% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <!-- Substitutes -->
+    <div class="card">
+        <div class="card-header-flex">
+            <h2>Substitutes</h2>
+            <a href="{{ url_for('exercises.manage_substitutes', exercise_id=exercise.exercise_id) }}" class="btn btn-sm btn-secondary">Manage</a>
+        </div>
+        {% if substitutes %}
+        <ul class="substitute-list">
+            {% for sub in substitutes %}
+            <li class="substitute-item">
+                <a href="{{ url_for('exercises.view', exercise_id=sub.exercise_id) }}">
+                    {{ sub.name }}
+                    <span class="substitute-muscle">{{ sub.muscle_group }}</span>
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-muted">No substitutes defined.</p>
+        {% endif %}
+    </div>
+
+    <!-- Actions -->
+    <div class="action-buttons">
+        <a href="{{ url_for('exercises.edit', exercise_id=exercise.exercise_id) }}" class="btn btn-secondary">Edit</a>
+        <a href="{{ url_for('workouts.new_session') }}" class="btn btn-primary">Use in Workout</a>
+    </div>
+</div>
+{% endblock %}

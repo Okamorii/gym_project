@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Recovery Details - Workout Tracker{% endblock %}
+
+{% block content %}
+<div class="recovery-view">
+    <header class="page-header">
+        <a href="{{ url_for('recovery.index') }}" class="btn btn-secondary">Back</a>
+        <h1>{{ log.log_date.strftime('%A, %B %d') }}</h1>
+    </header>
+
+    <div class="card">
+        {% if log.overall_recovery_score %}
+        <div class="overall-header">
+            <span class="overall-label">Overall Score</span>
+            <span class="overall-score large {% if log.overall_recovery_score >= 7 %}good{% elif log.overall_recovery_score >= 5 %}moderate{% else %}poor{% endif %}">
+                {{ log.overall_recovery_score }}/10
+            </span>
+        </div>
+        {% endif %}
+
+        <div class="recovery-details">
+            <div class="detail-item">
+                <span class="detail-label">Sleep Quality</span>
+                <div class="detail-bar">
+                    <div class="bar-fill" style="width: {{ (log.sleep_quality or 0) * 10 }}%"></div>
+                </div>
+                <span class="detail-value">{{ log.sleep_quality or '-' }}/10</span>
+            </div>
+
+            <div class="detail-item">
+                <span class="detail-label">Energy Level</span>
+                <div class="detail-bar">
+                    <div class="bar-fill" style="width: {{ (log.energy_level or 0) * 10 }}%"></div>
+                </div>
+                <span class="detail-value">{{ log.energy_level or '-' }}/10</span>
+            </div>
+
+            <div class="detail-item">
+                <span class="detail-label">Muscle Soreness</span>
+                <div class="detail-bar soreness">
+                    <div class="bar-fill" style="width: {{ (log.muscle_soreness or 0) * 10 }}%"></div>
+                </div>
+                <span class="detail-value">{{ log.muscle_soreness or '-' }}/10</span>
+            </div>
+
+            <div class="detail-item">
+                <span class="detail-label">Motivation</span>
+                <div class="detail-bar">
+                    <div class="bar-fill" style="width: {{ (log.motivation_score or 0) * 10 }}%"></div>
+                </div>
+                <span class="detail-value">{{ log.motivation_score or '-' }}/10</span>
+            </div>
+        </div>
+
+        {% if log.notes %}
+        <div class="detail-section">
+            <h3>Notes</h3>
+            <p>{{ log.notes }}</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="action-buttons">
+        <a href="{{ url_for('recovery.log_recovery') }}?date={{ log.log_date }}" class="btn btn-secondary">Edit</a>
+        <form action="{{ url_for('recovery.delete_log', recovery_id=log.recovery_id) }}" method="POST" class="delete-form" onsubmit="return confirm('Delete this recovery log?');">
+            <button type="submit" class="btn btn-danger">Delete</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

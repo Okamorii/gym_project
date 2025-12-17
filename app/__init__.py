@@ -33,6 +33,8 @@ def create_app(config_name='default'):
     from .blueprints.dashboard import dashboard_bp
     from .blueprints.workouts import workouts_bp
     from .blueprints.running import running_bp
+    from .blueprints.recovery import recovery_bp
+    from .blueprints.exercises import exercises_bp
     from .blueprints.analytics import analytics_bp
     from .blueprints.api import api_bp
 
@@ -40,6 +42,8 @@ def create_app(config_name='default'):
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(workouts_bp, url_prefix='/workouts')
     app.register_blueprint(running_bp, url_prefix='/running')
+    app.register_blueprint(recovery_bp, url_prefix='/recovery')
+    app.register_blueprint(exercises_bp, url_prefix='/exercises')
     app.register_blueprint(analytics_bp, url_prefix='/analytics')
     app.register_blueprint(api_bp, url_prefix='/api/v1')
 

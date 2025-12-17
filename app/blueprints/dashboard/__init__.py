@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template
 from flask_login import login_required, current_user
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from app.models import WorkoutSession, StrengthLog, RunningLog, PersonalRecord, RecoveryLog
 
 dashboard_bp = Blueprint('dashboard', __name__)
@@ -37,7 +37,8 @@ def index():
         recent_prs=recent_prs,
         today_recovery=today_recovery,
         recovery_avg=recovery_avg,
-        volume_alerts=volume_alerts
+        volume_alerts=volume_alerts,
+        now=datetime.now()
     )
 
 

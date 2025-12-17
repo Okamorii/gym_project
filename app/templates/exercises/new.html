@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}New Exercise - Workout Tracker{% endblock %}
+
+{% block content %}
+<div class="new-exercise">
+    <header class="page-header">
+        <a href="{{ url_for('exercises.index') }}" class="btn btn-secondary">Back</a>
+        <h1>New Exercise</h1>
+    </header>
+
+    <form method="POST" class="card">
+        <div class="form-group">
+            <label for="name">Exercise Name *</label>
+            <input type="text" id="name" name="name" required
+                   placeholder="e.g., Romanian Deadlift">
+        </div>
+
+        <div class="form-group">
+            <label for="muscle_group">Muscle Group</label>
+            <input type="text" id="muscle_group" name="muscle_group" list="muscle-groups"
+                   placeholder="e.g., Back, Chest, Legs">
+            <datalist id="muscle-groups">
+                {% for mg in muscle_groups %}
+                <option value="{{ mg }}">
+                {% endfor %}
+            </datalist>
+        </div>
+
+        <div class="form-group">
+            <label for="exercise_type">Type</label>
+            <select id="exercise_type" name="exercise_type">
+                <option value="strength">Strength</option>
+                <option value="cardio">Cardio</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" name="description" rows="3"
+                      placeholder="Exercise instructions or notes..."></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="video_reference_url">Video Reference URL</label>
+            <input type="url" id="video_reference_url" name="video_reference_url"
+                   placeholder="https://youtube.com/...">
+        </div>
+
+        <button type="submit" class="btn btn-success btn-block btn-large">
+            Create Exercise
+        </button>
+    </form>
+</div>
+{% endblock %}

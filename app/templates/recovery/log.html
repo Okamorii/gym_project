@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Log Recovery - Workout Tracker{% endblock %}
+
+{% block content %}
+<div class="log-recovery">
+    <header class="page-header">
+        <a href="{{ url_for('recovery.index') }}" class="btn btn-secondary">Back</a>
+        <h1>{% if existing %}Update{% else %}Log{% endif %} Recovery</h1>
+    </header>
+
+    <form method="POST" class="card">
+        <div class="form-group">
+            <label for="log_date">Date</label>
+            <input type="date" id="log_date" name="log_date"
+                   value="{{ existing.log_date if existing else today }}" required>
+        </div>
+
+        <div class="form-group slider-group">
+            <label for="sleep_quality">Sleep Quality</label>
+            <div class="slider-container">
+                <input type="range" id="sleep_quality" name="sleep_quality"
+                       min="1" max="10" value="{{ existing.sleep_quality if existing else 5 }}"
+                       oninput="updateSliderValue(this)">
+                <span class="slider-value">{{ existing.sleep_quality if existing else 5 }}</span>
+            </div>
+            <div class="slider-labels">
+                <span>Poor</span>
+                <span>Excellent</span>
+            </div>
+        </div>
+
+        <div class="form-group slider-group">
+            <label for="energy_level">Energy Level</label>
+            <div class="slider-container">
+                <input type="range" id="energy_level" name="energy_level"
+                       min="1" max="10" value="{{ existing.energy_level if existing else 5 }}"
+                       oninput="updateSliderValue(this)">
+                <span class="slider-value">{{ existing.energy_level if existing else 5 }}</span>
+            </div>
+            <div class="slider-labels">
+                <span>Exhausted</span>
+                <span>Energized</span>
+            </div>
+        </div>
+
+        <div class="form-group slider-group">
+            <label for="muscle_soreness">Muscle Soreness</label>
+            <div class="slider-container">
+                <input type="range" id="muscle_soreness" name="muscle_soreness"
+                       min="1" max="10" value="{{ existing.muscle_soreness if existing else 5 }}"
+                       oninput="updateSliderValue(this)">
+                <span class="slider-value">{{ existing.muscle_soreness if existing else 5 }}</span>
+            </div>
+            <div class="slider-labels">
+                <span>None</span>
+                <span>Very Sore</span>
+            </div>
+        </div>
+
+        <div class="form-group slider-group">
+            <label for="motivation_score">Motivation</label>
+            <div class="slider-container">
+                <input type="range" id="motivation_score" name="motivation_score"
+                       min="1" max="10" value="{{ existing.motivation_score if existing else 5 }}"
+                       oninput="updateSliderValue(this)">
+                <span class="slider-value">{{ existing.motivation_score if existing else 5 }}</span>
+            </div>
+            <div class="slider-labels">
+                <span>Low</span>
+                <span>High</span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="notes">Notes (optional)</label>
+            <textarea id="notes" name="notes" rows="3"
+                      placeholder="How are you feeling? Any specific issues?">{{ existing.notes if existing else '' }}</textarea>
+        </div>
+
+        <button type="submit" class="btn btn-success btn-block btn-large">
+            {% if existing %}Update{% else %}Log{% endif %} Recovery
+        </button>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function updateSliderValue(slider) {
+    slider.nextElementSibling.textContent = slider.value;
+}
+</script>
+{% endblock %}

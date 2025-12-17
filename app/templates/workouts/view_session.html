@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Workout Details - Workout Tracker{% endblock %}
+
+{% block content %}
+<div class="session-view">
+    <header class="page-header">
+        <a href="{{ url_for('workouts.index') }}" class="btn btn-secondary">Back</a>
+        <h1>{{ session.session_date.strftime('%A, %B %d') }}</h1>
+    </header>
+
+    <div class="card">
+        <div class="session-type-header">
+            <span class="session-type-badge upper_body large">Upper Body</span>
+            {% if session.duration_minutes %}
+            <span class="duration">{{ session.duration_minutes }} min</span>
+            {% endif %}
+        </div>
+
+        {% if logs %}
+        <div class="stats-grid">
+            <div class="stat-item">
+                <span class="stat-value">{{ logs|length }}</span>
+                <span class="stat-label">exercises</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value">{{ logs|sum(attribute='sets') }}</span>
+                <span class="stat-label">sets</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value">{{ session.total_volume|int }}</span>
+                <span class="stat-label">kg volume</span>
+            </div>
+        </div>
+
+        <div class="detail-section">
+            <h3>Exercises</h3>
+            <ul class="exercise-log-list">
+                {% for log in logs %}
+                <li class="logged-exercise">
+                    <div class="log-info">
+                        <span class="log-exercise-name">{{ log.exercise.name }}</span>
+                        <span class="log-details">{{ log.sets }}x{{ log.reps }} @ {{ log.weight_kg or 0 }}kg</span>
+                        {% if log.rpe %}<span class="log-rpe">RPE {{ log.rpe }}</span>{% endif %}
+                        {% if log.weight_kg %}
+                        <span class="log-1rm">Est. 1RM: {{ log.estimated_1rm }}kg</span>
+                        {% endif %}
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% else %}
+        <p class="empty-state">No exercises logged in this session.</p>
+        {% endif %}
+
+        {% if session.notes %}
+        <div class="detail-section">
+            <h3>Notes</h3>
+            <p>{{ session.notes }}</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="action-buttons">
+        <a href="{{ url_for('workouts.log_exercise', session_id=session.session_id) }}" class="btn btn-primary">Add Exercises</a>
+        <form action="{{ url_for('workouts.delete_session', session_id=session.session_id) }}" method="POST" class="delete-form" onsubmit="return confirm('Delete this workout?');">
+            <button type="submit" class="btn btn-danger">Delete</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
