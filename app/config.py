@@ -45,7 +45,12 @@ class ProductionConfig(Config):
 class TestingConfig(Config):
     """Testing configuration."""
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg://postgres@localhost/workout_tracker_test'
+    WTF_CSRF_ENABLED = False
+    SQLALCHEMY_DATABASE_URI = os.environ.get(
+        'TEST_DATABASE_URL',
+        'sqlite:///:memory:'  # Use in-memory SQLite for fast tests
+    )
+    SQLALCHEMY_ECHO = False
 
 
 config = {

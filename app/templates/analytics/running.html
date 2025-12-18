@@ -69,6 +69,21 @@
             <canvas id="trimp-chart"></canvas>
         </div>
     </div>
+
+    <!-- Heart Rate Zones -->
+    <div class="card">
+        <h2>Heart Rate Zones</h2>
+        <p class="text-muted" style="margin-bottom: 1rem; font-size: 0.85rem;">
+            Time spent in each training zone based on heart rate data.
+        </p>
+        <div id="zones-container">
+            <div id="zones-chart-container" class="zones-distribution"></div>
+            <div id="zones-summary" class="zones-summary"></div>
+        </div>
+        <div id="zones-empty" class="empty-state-text" style="display:none;">
+            No heart rate data available. Log runs with heart rate to see zone analysis.
+        </div>
+    </div>
 </div>
 {% endblock %}
 
@@ -222,5 +237,69 @@ document.querySelectorAll('.range-btn').forEach(btn => {
 
 // Initial load
 loadRunningData(currentWeeks);
+
+// Heart Rate Zones
+fetch('{{ url_for("analytics.running_zones") }}')
+    .then(r => r.json())
+    .then(data => {
+        const zonesContainer = document.getElementById('zones-chart-container');
+        const zonesSummary = document.getElementById('zones-summary');
+        const zonesEmpty = document.getElementById('zones-empty');
+
+        if (data.total_minutes === 0) {
+            document.getElementById('zones-container').style.display = 'none';
+            zonesEmpty.style.display = 'block';
+            return;
+        }
+
+        // Build horizontal bar visualization
+        let barsHtml = '';
+        data.zones.forEach(zone => {
+            const widthPct = Math.max(zone.percentage, 2); // Min 2% for visibility
+            barsHtml += `
+                <div class="zone-row">
+                    <div class="zone-info">
+                        <span class="zone-name">${zone.name}</span>
+                        <span class="zone-hr">${zone.hr_range}</span>
+                    </div>
+                    <div class="zone-bar-container">
+                        <div class="zone-bar" style="width: ${widthPct}%; background-color: ${zone.color};">
+                            <span class="zone-bar-label">${zone.percentage}%</span>
+                        </div>
+                    </div>
+                    <div class="zone-time">${formatMinutes(zone.minutes)}</div>
+                </div>
+            `;
+        });
+        zonesContainer.innerHTML = barsHtml;
+
+        // Summary stats
+        const totalHours = (data.total_minutes / 60).toFixed(1);
+        const aerobicMinutes = data.zones.filter(z => z.zone === 'zone1' || z.zone === 'zone2')
+            .reduce((sum, z) => sum + z.minutes, 0);
+        const aerobicPct = data.total_minutes > 0 ? Math.round(aerobicMinutes / data.total_minutes * 100) : 0;
+
+        zonesSummary.innerHTML = `
+            <div class="zone-stat">
+                <span class="zone-stat-value">${totalHours}</span>
+                <span class="zone-stat-label">Total Hours</span>
+            </div>
+            <div class="zone-stat">
+                <span class="zone-stat-value">${data.estimated_max_hr}</span>
+                <span class="zone-stat-label">Est. Max HR</span>
+            </div>
+            <div class="zone-stat">
+                <span class="zone-stat-value">${aerobicPct}%</span>
+                <span class="zone-stat-label">Aerobic (Z1-2)</span>
+            </div>
+        `;
+    });
+
+function formatMinutes(minutes) {
+    if (minutes < 60) return `${Math.round(minutes)}m`;
+    const hours = Math.floor(minutes / 60);
+    const mins = Math.round(minutes % 60);
+    return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
+}
 </script>
 {% endblock %}

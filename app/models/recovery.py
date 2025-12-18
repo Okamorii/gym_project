@@ -30,6 +30,21 @@ class RecoveryLog(db.Model):
             return None
         return round(sum(valid_metrics) / len(valid_metrics), 1)
 
+    @property
+    def readiness_level(self):
+        """Get readiness level description."""
+        score = self.overall_recovery_score
+        if score is None:
+            return None
+        if score >= 8:
+            return {'level': 'excellent', 'label': 'Ready to Push', 'color': 'success', 'advice': 'Great day for intense training!'}
+        elif score >= 6:
+            return {'level': 'good', 'label': 'Good to Go', 'color': 'primary', 'advice': 'Normal training recommended.'}
+        elif score >= 4:
+            return {'level': 'moderate', 'label': 'Take it Easy', 'color': 'warning', 'advice': 'Consider lighter intensity today.'}
+        else:
+            return {'level': 'low', 'label': 'Rest Day', 'color': 'danger', 'advice': 'Recovery day recommended.'}
+
     @classmethod
     def get_today_log(cls, user_id):
         """Get today's recovery log."""

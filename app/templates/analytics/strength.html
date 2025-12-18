@@ -67,6 +67,32 @@
             <canvas id="volume-trend-chart"></canvas>
         </div>
     </div>
+
+    <!-- PR History Graph -->
+    <div class="card">
+        <h2>PR History</h2>
+        <p class="text-secondary text-sm">Track your personal record progression over time</p>
+        {% if exercises %}
+        <div class="form-group">
+            <label for="pr-exercise-select">Select Exercise</label>
+            <select id="pr-exercise-select">
+                <option value="">Choose an exercise...</option>
+                {% for exercise in exercises %}
+                <option value="{{ exercise.exercise_id }}">{{ exercise.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div id="pr-chart-container" class="chart-container" style="display:none;">
+            <canvas id="pr-history-chart"></canvas>
+        </div>
+        <div id="pr-milestones" class="pr-milestones" style="display:none;"></div>
+        <div id="pr-empty" class="empty-state-text" style="display:none;">
+            No PR data for this exercise yet.
+        </div>
+        {% else %}
+        <p class="empty-state-text">No exercises logged yet.</p>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}
 
@@ -256,5 +282,111 @@ fetch('{{ url_for("analytics.strength_volume_data") }}?weeks=8')
             }
         });
     });
+
+// PR History chart
+const prExerciseSelect = document.getElementById('pr-exercise-select');
+const prChartContainer = document.getElementById('pr-chart-container');
+const prMilestones = document.getElementById('pr-milestones');
+const prEmpty = document.getElementById('pr-empty');
+let prHistoryChart = null;
+
+if (prExerciseSelect) {
+    prExerciseSelect.addEventListener('change', function() {
+        const exerciseId = this.value;
+        if (!exerciseId) {
+            prChartContainer.style.display = 'none';
+            prMilestones.style.display = 'none';
+            prEmpty.style.display = 'none';
+            return;
+        }
+
+        fetch(`{{ url_for('analytics.pr_history', exercise_id=0) }}`.replace('0', exerciseId))
+            .then(r => r.json())
+            .then(data => {
+                if (data.length === 0) {
+                    prChartContainer.style.display = 'none';
+                    prMilestones.style.display = 'none';
+                    prEmpty.style.display = 'block';
+                    return;
+                }
+
+                prEmpty.style.display = 'none';
+                prChartContainer.innerHTML = '<canvas id="pr-history-chart"></canvas>';
+                prChartContainer.style.display = 'block';
+
+                if (prHistoryChart) prHistoryChart.destroy();
+
+                // Find PR points for annotations
+                const prPoints = data.filter(d => d.is_pr);
+
+                prHistoryChart = new Chart(document.getElementById('pr-history-chart'), {
+                    type: 'line',
+                    data: {
+                        labels: data.map(d => d.date),
+                        datasets: [{
+                            label: 'Estimated 1RM (kg)',
+                            data: data.map(d => d.estimated_1rm),
+                            borderColor: '#6366f1',
+                            backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                            tension: 0.3,
+                            fill: true,
+                            pointRadius: data.map(d => d.is_pr ? 8 : 3),
+                            pointBackgroundColor: data.map(d => d.is_pr ? '#f59e0b' : '#6366f1'),
+                            pointBorderColor: data.map(d => d.is_pr ? '#f59e0b' : '#6366f1'),
+                            pointBorderWidth: data.map(d => d.is_pr ? 2 : 1)
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const idx = context.dataIndex;
+                                        const d = data[idx];
+                                        let label = `1RM: ${d.estimated_1rm} kg`;
+                                        if (d.is_pr) label += ' (PR!)';
+                                        return label;
+                                    },
+                                    afterLabel: function(context) {
+                                        const idx = context.dataIndex;
+                                        return `Max Weight: ${data[idx].max_weight} kg`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                grid: { color: '#2a2a40' },
+                                title: { display: true, text: 'Estimated 1RM (kg)' }
+                            },
+                            x: { grid: { display: false } }
+                        }
+                    }
+                });
+
+                // Show PR milestones
+                if (prPoints.length > 0) {
+                    const milestonesHtml = prPoints.slice(-5).reverse().map(pr => `
+                        <div class="pr-milestone">
+                            <span class="pr-milestone-icon">&#127942;</span>
+                            <span class="pr-milestone-value">${pr.estimated_1rm} kg</span>
+                            <span class="pr-milestone-date">${pr.date}</span>
+                        </div>
+                    `).join('');
+                    prMilestones.innerHTML = `
+                        <h4>Recent PRs</h4>
+                        <div class="pr-milestone-list">${milestonesHtml}</div>
+                    `;
+                    prMilestones.style.display = 'block';
+                } else {
+                    prMilestones.style.display = 'none';
+                }
+            });
+    });
+}
 </script>
 {% endblock %}

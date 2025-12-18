@@ -6,6 +6,18 @@ from app.models import WorkoutSession, RunningLog
 
 running_bp = Blueprint('running', __name__)
 
+
+def parse_decimal(value):
+    """Parse decimal number accepting both comma (5,54) and period (5.54)."""
+    if value is None or value == '':
+        return None
+    try:
+        # Replace comma with period for European format
+        cleaned = str(value).replace(',', '.')
+        return float(cleaned)
+    except (ValueError, TypeError):
+        return None
+
 # Run types based on Campus.coach methodology
 RUN_TYPES = [
     ('easy', 'Easy Run', 'Comfortable conversational pace'),
@@ -48,7 +60,7 @@ def new_session():
     if request.method == 'POST':
         session_date = request.form.get('session_date', date.today())
         run_type = request.form.get('run_type')
-        distance_km = request.form.get('distance_km', type=float)
+        distance_km = parse_decimal(request.form.get('distance_km'))
         duration_minutes = request.form.get('duration_minutes', type=int)
         avg_heart_rate = request.form.get('avg_heart_rate', type=int)
         max_heart_rate = request.form.get('max_heart_rate', type=int)
@@ -137,7 +149,7 @@ def edit_session(session_id):
         session.notes = request.form.get('notes')
 
         run_log.run_type = request.form.get('run_type')
-        run_log.distance_km = request.form.get('distance_km', type=float)
+        run_log.distance_km = parse_decimal(request.form.get('distance_km'))
         run_log.duration_minutes = request.form.get('duration_minutes', type=int)
         run_log.avg_heart_rate = request.form.get('avg_heart_rate', type=int)
         run_log.max_heart_rate = request.form.get('max_heart_rate', type=int)

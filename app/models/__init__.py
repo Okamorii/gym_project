@@ -5,6 +5,7 @@ from .records import PersonalRecord
 from .recovery import RecoveryLog
 from .planning import PlannedWorkout
 from .template import WorkoutTemplate, TemplateExercise
+from .body_measurements import BodyMeasurement
 
 __all__ = [
     'User',
@@ -18,5 +19,6 @@ __all__ = [
     'RecoveryLog',
     'PlannedWorkout',
     'WorkoutTemplate',
-    'TemplateExercise'
+    'TemplateExercise',
+    'BodyMeasurement'
 ]

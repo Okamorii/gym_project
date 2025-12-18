@@ -5,6 +5,18 @@ from sqlalchemy import text
 from app import db
 from app.models import WorkoutSession, StrengthLog, Exercise, PersonalRecord, WorkoutTemplate
 
+
+def parse_decimal(value):
+    """Parse decimal number accepting both comma (5,54) and period (5.54)."""
+    if value is None or value == '':
+        return None
+    try:
+        # Replace comma with period for European format
+        cleaned = str(value).replace(',', '.')
+        return float(cleaned)
+    except (ValueError, TypeError):
+        return None
+
 workouts_bp = Blueprint('workouts', __name__)
 
 
@@ -132,7 +144,7 @@ def log_exercise(session_id):
         exercise_id = request.form.get('exercise_id', type=int)
         sets = request.form.get('sets', type=int)
         reps = request.form.get('reps', type=int)
-        weight_kg = request.form.get('weight_kg', type=float)
+        weight_kg = parse_decimal(request.form.get('weight_kg'))
         rpe = request.form.get('rpe', type=int)
         rest_seconds = request.form.get('rest_seconds', type=int)
 

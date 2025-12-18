@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}Add Measurement - Workout Tracker{% endblock %}
+
+{% block content %}
+<div class="body-page">
+    <header class="page-header">
+        <h1>Add Measurement</h1>
+    </header>
+
+    <form method="POST" class="measurement-form">
+        <section class="card">
+            <h2>Date</h2>
+            <div class="form-group">
+                <input type="date" name="measurement_date" value="{{ today }}" required>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>Core Metrics</h2>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="weight_kg">Weight (kg)</label>
+                    <input type="text" id="weight_kg" name="weight_kg"
+                           inputmode="decimal" placeholder="e.g., 75.5"
+                           value="{{ latest.weight_kg if latest else '' }}"
+                           class="input-large">
+                </div>
+                <div class="form-group">
+                    <label for="body_fat_pct">Body Fat %</label>
+                    <input type="text" id="body_fat_pct" name="body_fat_pct"
+                           inputmode="decimal" placeholder="e.g., 15"
+                           value="{{ latest.body_fat_pct if latest else '' }}"
+                           class="input-large">
+                </div>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>Upper Body (cm)</h2>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="neck_cm">Neck</label>
+                    <input type="text" id="neck_cm" name="neck_cm"
+                           inputmode="decimal" placeholder="e.g., 38">
+                </div>
+                <div class="form-group">
+                    <label for="shoulders_cm">Shoulders</label>
+                    <input type="text" id="shoulders_cm" name="shoulders_cm"
+                           inputmode="decimal" placeholder="e.g., 120">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="chest_cm">Chest</label>
+                    <input type="text" id="chest_cm" name="chest_cm"
+                           inputmode="decimal" placeholder="e.g., 100">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="left_arm_cm">Left Arm</label>
+                    <input type="text" id="left_arm_cm" name="left_arm_cm"
+                           inputmode="decimal" placeholder="e.g., 35">
+                </div>
+                <div class="form-group">
+                    <label for="right_arm_cm">Right Arm</label>
+                    <input type="text" id="right_arm_cm" name="right_arm_cm"
+                           inputmode="decimal" placeholder="e.g., 35">
+                </div>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>Torso (cm)</h2>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="waist_cm">Waist</label>
+                    <input type="text" id="waist_cm" name="waist_cm"
+                           inputmode="decimal" placeholder="e.g., 82">
+                </div>
+                <div class="form-group">
+                    <label for="hips_cm">Hips</label>
+                    <input type="text" id="hips_cm" name="hips_cm"
+                           inputmode="decimal" placeholder="e.g., 95">
+                </div>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>Lower Body (cm)</h2>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="left_thigh_cm">Left Thigh</label>
+                    <input type="text" id="left_thigh_cm" name="left_thigh_cm"
+                           inputmode="decimal" placeholder="e.g., 55">
+                </div>
+                <div class="form-group">
+                    <label for="right_thigh_cm">Right Thigh</label>
+                    <input type="text" id="right_thigh_cm" name="right_thigh_cm"
+                           inputmode="decimal" placeholder="e.g., 55">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="left_calf_cm">Left Calf</label>
+                    <input type="text" id="left_calf_cm" name="left_calf_cm"
+                           inputmode="decimal" placeholder="e.g., 38">
+                </div>
+                <div class="form-group">
+                    <label for="right_calf_cm">Right Calf</label>
+                    <input type="text" id="right_calf_cm" name="right_calf_cm"
+                           inputmode="decimal" placeholder="e.g., 38">
+                </div>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>Notes</h2>
+            <div class="form-group">
+                <textarea name="notes" rows="2" placeholder="Any notes..."></textarea>
+            </div>
+        </section>
+
+        <button type="submit" class="btn btn-primary btn-block btn-large">
+            Save Measurement
+        </button>
+    </form>
+</div>
+{% endblock %}

@@ -17,6 +17,10 @@ DROP FUNCTION IF EXISTS calculate_1rm CASCADE;
 DROP FUNCTION IF EXISTS calculate_trimp CASCADE;
 DROP FUNCTION IF EXISTS get_exercise_substitutes CASCADE;
 DROP FUNCTION IF EXISTS add_substitution CASCADE;
+DROP TABLE IF EXISTS body_measurements CASCADE;
+DROP TABLE IF EXISTS planned_workouts CASCADE;
+DROP TABLE IF EXISTS template_exercises CASCADE;
+DROP TABLE IF EXISTS workout_templates CASCADE;
 DROP TABLE IF EXISTS exercise_substitutions CASCADE;
 DROP TABLE IF EXISTS recovery_logs CASCADE;
 DROP TABLE IF EXISTS personal_records CASCADE;
@@ -129,6 +133,66 @@ CREATE TABLE exercise_substitutions (
     CHECK (exercise_id <> substitute_id)
 );
 
+-- Workout templates
+CREATE TABLE workout_templates (
+    template_id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    workout_type VARCHAR(50) DEFAULT 'upper_body',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_active BOOLEAN DEFAULT TRUE
+);
+
+-- Template exercises (exercises within a template)
+CREATE TABLE template_exercises (
+    template_exercise_id SERIAL PRIMARY KEY,
+    template_id INTEGER NOT NULL REFERENCES workout_templates(template_id) ON DELETE CASCADE,
+    exercise_id INTEGER NOT NULL REFERENCES exercises(exercise_id),
+    order_index INTEGER DEFAULT 0,
+    target_sets INTEGER DEFAULT 3,
+    target_reps INTEGER DEFAULT 10,
+    notes VARCHAR(200)
+);
+
+-- Planned workouts (weekly planning)
+CREATE TABLE planned_workouts (
+    plan_id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    planned_date DATE NOT NULL,
+    workout_type VARCHAR(20) NOT NULL,
+    description VARCHAR(255),
+    target_duration INTEGER,
+    target_distance DECIMAL(6,2),
+    template_id INTEGER REFERENCES workout_templates(template_id),
+    completed BOOLEAN DEFAULT FALSE,
+    completed_session_id INTEGER REFERENCES workout_sessions(session_id),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Body measurements tracking
+CREATE TABLE body_measurements (
+    measurement_id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    measurement_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    weight_kg DECIMAL(5,2),
+    body_fat_pct DECIMAL(4,1),
+    chest_cm DECIMAL(5,1),
+    waist_cm DECIMAL(5,1),
+    hips_cm DECIMAL(5,1),
+    left_arm_cm DECIMAL(4,1),
+    right_arm_cm DECIMAL(4,1),
+    left_thigh_cm DECIMAL(5,1),
+    right_thigh_cm DECIMAL(5,1),
+    left_calf_cm DECIMAL(4,1),
+    right_calf_cm DECIMAL(4,1),
+    neck_cm DECIMAL(4,1),
+    shoulders_cm DECIMAL(5,1),
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- =============================================================================
 -- INDEXES
 -- =============================================================================
@@ -144,6 +208,12 @@ CREATE INDEX idx_recovery_logs_user ON recovery_logs(user_id);
 CREATE INDEX idx_personal_records_user ON personal_records(user_id);
 CREATE INDEX idx_substitutions_exercise ON exercise_substitutions(exercise_id);
 CREATE INDEX idx_substitutions_substitute ON exercise_substitutions(substitute_id);
+CREATE INDEX idx_templates_user ON workout_templates(user_id);
+CREATE INDEX idx_template_exercises_template ON template_exercises(template_id);
+CREATE INDEX idx_planned_workouts_user ON planned_workouts(user_id);
+CREATE INDEX idx_planned_workouts_date ON planned_workouts(planned_date);
+CREATE INDEX idx_body_measurements_user ON body_measurements(user_id);
+CREATE INDEX idx_body_measurements_date ON body_measurements(measurement_date);
 
 -- =============================================================================
 -- FUNCTIONS

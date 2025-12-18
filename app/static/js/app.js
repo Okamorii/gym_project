@@ -29,11 +29,37 @@ document.addEventListener('DOMContentLoaded', function() {
             navToggle.classList.toggle('active');
         });
 
-        // Close menu when clicking a link
-        navMenu.querySelectorAll('.nav-link').forEach(link => {
+        // Close menu when clicking a non-dropdown link
+        navMenu.querySelectorAll('.nav-link:not(.nav-dropdown-toggle)').forEach(link => {
             link.addEventListener('click', () => {
                 navMenu.classList.remove('active');
                 navToggle.classList.remove('active');
+            });
+        });
+
+        // Close menu when clicking dropdown item
+        navMenu.querySelectorAll('.nav-dropdown-item').forEach(item => {
+            item.addEventListener('click', () => {
+                navMenu.classList.remove('active');
+                navToggle.classList.remove('active');
+            });
+        });
+
+        // Mobile dropdown toggles
+        navMenu.querySelectorAll('.nav-dropdown-toggle').forEach(toggle => {
+            toggle.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const dropdown = toggle.closest('.nav-dropdown');
+
+                // On mobile, toggle dropdown visibility
+                if (window.innerWidth < 768) {
+                    // Close other dropdowns
+                    navMenu.querySelectorAll('.nav-dropdown').forEach(d => {
+                        if (d !== dropdown) d.classList.remove('active');
+                    });
+                    dropdown.classList.toggle('active');
+                }
             });
         });
 
@@ -42,6 +68,10 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!navMenu.contains(e.target) && !navToggle.contains(e.target)) {
                 navMenu.classList.remove('active');
                 navToggle.classList.remove('active');
+                // Also close all dropdowns
+                navMenu.querySelectorAll('.nav-dropdown').forEach(d => {
+                    d.classList.remove('active');
+                });
             }
         });
     }
@@ -537,32 +567,42 @@ document.addEventListener('DOMContentLoaded', function() {
 
 const restTimer = {
     seconds: 0,
+    totalSeconds: 90,
     interval: null,
     isRunning: false,
     defaultDuration: 90, // Default rest time in seconds
+    circumference: 283, // 2 * PI * 45 (radius)
 
     init() {
         const timerContainer = document.getElementById('restTimerContainer');
         if (!timerContainer) return;
 
         this.display = document.getElementById('timerDisplay');
+        this.progressCircle = document.getElementById('timerProgress');
         this.startBtn = document.getElementById('timerStart');
         this.stopBtn = document.getElementById('timerStop');
         this.resetBtn = document.getElementById('timerReset');
+        this.add15Btn = document.getElementById('timerAdd15');
         this.restInput = document.getElementById('rest_seconds');
         this.presetBtns = document.querySelectorAll('.timer-preset');
 
         // Event listeners
         this.startBtn?.addEventListener('click', () => this.start());
-        this.stopBtn?.addEventListener('click', () => this.stop());
+        this.stopBtn?.addEventListener('click', () => this.pause());
         this.resetBtn?.addEventListener('click', () => this.reset());
+        this.add15Btn?.addEventListener('click', () => this.addTime(15));
 
         // Preset buttons
         this.presetBtns.forEach(btn => {
             btn.addEventListener('click', () => {
+                // Update active state
+                this.presetBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
                 const duration = parseInt(btn.dataset.seconds);
+                this.defaultDuration = duration;
+                localStorage.setItem('restTimerDefault', duration);
                 this.setDuration(duration);
-                this.start();
             });
         });
 
@@ -570,22 +610,30 @@ const restTimer = {
         const savedDefault = localStorage.getItem('restTimerDefault');
         if (savedDefault) {
             this.defaultDuration = parseInt(savedDefault);
+            // Update active preset button
+            this.presetBtns.forEach(btn => {
+                btn.classList.toggle('active', parseInt(btn.dataset.seconds) === this.defaultDuration);
+            });
         }
 
+        this.seconds = this.defaultDuration;
+        this.totalSeconds = this.defaultDuration;
         this.updateDisplay();
     },
 
     setDuration(seconds) {
         this.seconds = seconds;
+        this.totalSeconds = seconds;
         this.updateDisplay();
     },
 
     start() {
         if (this.isRunning) return;
 
-        // If timer is at 0, use default duration (count down mode)
+        // If timer is at 0, use default duration
         if (this.seconds === 0) {
             this.seconds = this.defaultDuration;
+            this.totalSeconds = this.defaultDuration;
         }
 
         this.isRunning = true;
@@ -594,6 +642,11 @@ const restTimer = {
 
         // Add running class for visual feedback
         document.getElementById('restTimerContainer')?.classList.add('timer-running');
+
+        // Request notification permission on first use
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
 
         this.interval = setInterval(() => {
             this.seconds--;
@@ -605,7 +658,7 @@ const restTimer = {
         }, 1000);
     },
 
-    stop() {
+    pause() {
         if (!this.isRunning) return;
 
         clearInterval(this.interval);
@@ -614,75 +667,83 @@ const restTimer = {
         this.stopBtn.style.display = 'none';
 
         document.getElementById('restTimerContainer')?.classList.remove('timer-running');
-
-        // Calculate elapsed time and fill rest input
-        const elapsed = this.defaultDuration - this.seconds;
-        if (elapsed > 0 && this.restInput) {
-            this.restInput.value = elapsed;
-        }
     },
 
     reset() {
-        this.stop();
+        this.pause();
         this.seconds = this.defaultDuration;
+        this.totalSeconds = this.defaultDuration;
+        this.progressCircle?.classList.remove('warning', 'complete');
+        this.updateDisplay();
+    },
+
+    addTime(extraSeconds) {
+        this.seconds += extraSeconds;
+        this.totalSeconds += extraSeconds;
         this.updateDisplay();
     },
 
     timerComplete() {
-        this.stop();
+        this.pause();
         this.seconds = 0;
         this.updateDisplay();
 
         // Fill rest input with full duration
         if (this.restInput) {
-            this.restInput.value = this.defaultDuration;
+            this.restInput.value = this.totalSeconds;
         }
 
-        // Visual and audio feedback
+        // Visual feedback
         document.getElementById('restTimerContainer')?.classList.add('timer-complete');
+        this.progressCircle?.classList.add('complete');
         setTimeout(() => {
             document.getElementById('restTimerContainer')?.classList.remove('timer-complete');
-        }, 2000);
+        }, 3000);
 
-        // Play sound if available
+        // Play sound
         this.playAlertSound();
 
         // Vibrate on mobile
         if (navigator.vibrate) {
-            navigator.vibrate([200, 100, 200]);
+            navigator.vibrate([200, 100, 200, 100, 200]);
         }
 
         // Show notification if permission granted
         if (Notification.permission === 'granted') {
             new Notification('Rest Complete!', {
-                body: 'Time for your next set',
+                body: 'Time for your next set!',
                 icon: '/static/icons/icon-192.png',
-                tag: 'rest-timer'
+                tag: 'rest-timer',
+                requireInteraction: false
             });
         }
     },
 
     playAlertSound() {
-        // Create a simple beep using Web Audio API
         try {
             const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const oscillator = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
 
-            oscillator.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
+            // Play two beeps
+            [0, 300].forEach(delay => {
+                setTimeout(() => {
+                    const oscillator = audioCtx.createOscillator();
+                    const gainNode = audioCtx.createGain();
 
-            oscillator.frequency.value = 800;
-            oscillator.type = 'sine';
-            gainNode.gain.value = 0.3;
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioCtx.destination);
 
-            oscillator.start();
-            setTimeout(() => {
-                oscillator.stop();
-                audioCtx.close();
-            }, 200);
+                    oscillator.frequency.value = 880;
+                    oscillator.type = 'sine';
+                    gainNode.gain.value = 0.3;
+
+                    oscillator.start();
+                    setTimeout(() => oscillator.stop(), 150);
+                }, delay);
+            });
+
+            setTimeout(() => audioCtx.close(), 600);
         } catch (e) {
-            // Audio not supported, ignore
+            // Audio not supported
         }
     },
 
@@ -693,11 +754,23 @@ const restTimer = {
         const secs = this.seconds % 60;
         this.display.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
 
-        // Change color based on time remaining
-        if (this.seconds <= 10 && this.seconds > 0) {
-            this.display.classList.add('timer-warning');
-        } else {
-            this.display.classList.remove('timer-warning');
+        // Update circular progress
+        if (this.progressCircle && this.totalSeconds > 0) {
+            const progress = this.seconds / this.totalSeconds;
+            const offset = this.circumference * (1 - progress);
+            this.progressCircle.style.strokeDashoffset = offset;
+
+            // Update colors based on time remaining
+            this.progressCircle.classList.remove('warning', 'complete');
+            if (this.seconds <= 10 && this.seconds > 0) {
+                this.progressCircle.classList.add('warning');
+                this.display.classList.add('timer-warning');
+            } else if (this.seconds === 0) {
+                this.progressCircle.classList.add('complete');
+                this.display.classList.remove('timer-warning');
+            } else {
+                this.display.classList.remove('timer-warning');
+            }
         }
     },
 

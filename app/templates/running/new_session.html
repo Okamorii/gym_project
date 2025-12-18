@@ -27,8 +27,9 @@
         <div class="form-row">
             <div class="form-group">
                 <label for="distance_km">Distance (km)</label>
-                <input type="number" id="distance_km" name="distance_km"
-                       step="0.1" min="0" inputmode="decimal" class="input-large">
+                <input type="text" id="distance_km" name="distance_km"
+                       inputmode="decimal" class="input-large decimal-input"
+                       placeholder="e.g., 5.5 or 5,5" pattern="[0-9]*[.,]?[0-9]*">
             </div>
             <div class="form-group">
                 <label for="duration_minutes">Duration (min)</label>

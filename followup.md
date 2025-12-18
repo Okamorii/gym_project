@@ -382,20 +382,21 @@ A Flask-based workout tracking application for monitoring upper body strength tr
 ### High Priority
 ~~21. **Workout Templates** - Save and reuse workout structures (e.g., "Upper Body Day A" with pre-filled exercises, sets, reps)~~ ✅ COMPLETED
 22. **Goal Setting** - Set targets (e.g., "Bench 100kg", "Run 5K in 25min") with progress tracking and visual indicators
-~~23. **Rest Timer** - Built-in countdown timer between sets with manual override option~~ ✅ COMPLETED
+~~23. **Rest Timer** - Built-in countdown timer between sets with manual override option~~ ✅ COMPLETED (Enhanced with circular progress, +15s button, preset memory)
+~~24. **Body Measurements** - Track weight, body fat %, chest, arms, waist measurements over time~~ ✅ COMPLETED
+~~25. **Workout Consistency Calendar** - GitHub-style heatmap showing workout days~~ ✅ COMPLETED
+~~26. **Fatigue/Readiness Score** - Combine recovery metrics (sleep, soreness, energy) into single daily score~~ ✅ COMPLETED
 
-### Medium Priority
-24. **Body Measurements** - Track weight, body fat %, chest, arms, waist measurements over time
-25. **Workout Consistency Calendar** - GitHub-style heatmap showing workout days
-26. **Fatigue/Readiness Score** - Combine recovery metrics (sleep, soreness, energy) into single daily score
-27. **Photo Progress** - Upload progress photos linked to dates
-28. **Running Pace Zones** - Show time spent in each heart rate/pace zone
+### Medium Priority (Next Up)
+~~27. **Workout Comparison** - "This week vs last week" side-by-side comparison view with charts~~ ✅ COMPLETED
+~~28. **PR History Graph** - Visualize lift progression over time for each exercise~~ ✅ COMPLETED
+~~29. **Running Pace Zones** - Show time spent in each heart rate/pace zone with zone analysis~~ ✅ COMPLETED
+30. **Photo Progress** - Upload progress photos linked to dates with before/after comparison
 
 ### Low Priority
-29. **Dark/Light Theme Toggle** - User preference for theme switching
-30. **Password Reset** - Email-based password recovery flow
-31. **Weekly Summary Email** - Automated weekly recap of workouts, PRs, and stats
-32. **Comparison Analytics** - "This month vs last month" side-by-side comparison view
+31. **Dark/Light Theme Toggle** - User preference for theme switching
+32. **Password Reset** - Email-based password recovery flow
+33. **Weekly Summary Email** - Automated weekly recap of workouts, PRs, and stats
 
 ### Quick Fixes
 - **Fix Docker healthcheck** - Container shows "unhealthy" despite working
@@ -407,7 +408,7 @@ A Flask-based workout tracking application for monitoring upper body strength tr
 
 | Feature | Status |
 |---------|--------|
-| Database Schema | ✅ Complete |
+| Database Schema | ✅ Complete (synced with models) |
 | Flask App Structure | ✅ Complete |
 | Auth (Login/Register/Profile) | ✅ Complete |
 | Dashboard | ✅ Complete |
@@ -426,8 +427,18 @@ A Flask-based workout tracking application for monitoring upper body strength tr
 | Weekly Planning | ✅ Complete |
 | Data Export | ✅ Complete |
 | Input Validation | ✅ Complete |
+| Workout Templates | ✅ Complete |
+| Rest Timer (Enhanced) | ✅ Complete |
+| Body Measurements | ✅ Complete |
+| Activity Heatmap | ✅ Complete |
+| Readiness Score | ✅ Complete |
+| Dropdown Navigation | ✅ Complete |
+| Unit Tests | ✅ Complete |
+| Workout Comparison | ✅ Complete |
+| PR History Graph | ✅ Complete |
+| Running Pace Zones | ✅ Complete |
 
-**Overall: 100% Complete** (Core Features)
+**Overall: 100% Complete** (Core Features + Phase 6 High Priority + Medium Priority Analytics)
 
 ---
 
@@ -510,6 +521,163 @@ A Flask-based workout tracking application for monitoring upper body strength tr
 - RPE: 1-10
 - Distance: 0-100km (warning >50km)
 - Heart Rate: 40-220 (warning <60 or >200)
+
+---
+
+### 8. Features Completed (December 18, 2025)
+
+#### 8.1 Enhanced Rest Timer
+- Circular SVG progress indicator that depletes as time counts down
+- Color changes: purple (normal) → yellow (warning at 10s) → green (complete)
+- +15 second button to extend timer mid-countdown
+- Pause/resume functionality (stop button now pauses instead of stopping)
+- Preset duration buttons (1:00, 1:30, 2:00, 3:00) with active state
+- Remembers preferred duration in localStorage
+- Double beep audio alert on completion
+
+#### 8.2 Body Measurements Tracking
+**New Model:** `app/models/body_measurements.py`
+- `BodyMeasurement` model with comprehensive body stats
+
+**New Blueprint:** `app/blueprints/body/__init__.py`
+- `GET /body/` - Body measurements overview with latest stats
+- `GET/POST /body/add` - Add new measurement (pre-fills with last values)
+- `GET /body/<id>` - View specific measurement
+- `POST /body/<id>/delete` - Delete measurement
+- `GET /body/api/progress/<field>` - Chart data for any field
+- `GET /body/api/summary` - Summary for dashboard widgets
+
+**Measurements Tracked:**
+- Weight (kg), Body Fat (%)
+- Upper body: Neck, Shoulders, Chest, Left/Right Arms
+- Torso: Waist, Hips
+- Lower body: Left/Right Thighs, Left/Right Calves
+- Calculated: Waist-to-hip ratio, arm/thigh averages
+
+**Features:**
+- Progress chart showing weight over time
+- Change indicators (+/- from previous measurement)
+- History list with quick navigation
+- Added to "Track" dropdown menu in navigation
+
+#### 8.3 Activity Heatmap (Analytics)
+- GitHub-style contribution heatmap showing 52 weeks of workout activity
+- Color-coded by workout type:
+  - Purple: Strength workouts
+  - Green: Running workouts
+  - Teal: Mixed (both in same day)
+- Intensity levels (darker = more workouts)
+- Month labels for time reference
+- Hover tooltips with date and workout details
+- Summary stats: Total workouts, Active days, Current streak, Best streak
+
+**New API Endpoint:** `GET /analytics/api/activity-heatmap`
+
+#### 8.4 Readiness Score (Dashboard)
+- Combines recovery metrics into single actionable score (1-10)
+- Formula: average of (sleep, energy, 10-soreness, motivation)
+- Color-coded readiness levels:
+  - 8-10 Green "Ready to Push" - intense training day
+  - 6-8 Blue "Good to Go" - normal training
+  - 4-6 Yellow "Take it Easy" - lighter intensity
+  - 0-4 Red "Rest Day" - recovery recommended
+- Visual gauge with gradient progress bar
+- Contextual training advice
+- Prompt to log recovery if none exists for today
+
+#### 8.5 Dropdown Navigation Menu
+- Reorganized top navigation from 10 items to 5 dropdown groups:
+  - Dashboard (standalone)
+  - Track → Log Strength, Log Run, Recovery, Body Stats
+  - History → Strength Sessions, Running Sessions
+  - Manage → Weekly Plan, Templates, Exercises
+  - Analytics (standalone)
+  - Account → Profile, Logout
+- Hover-activated dropdowns on desktop
+- Tap-activated on mobile with hamburger menu integration
+- Smooth animations and proper z-index layering
+
+#### 8.6 Database Schema Sync
+- Added missing tables to `setup_database.sql`:
+  - `workout_templates` - Reusable workout structures
+  - `template_exercises` - Exercises within templates
+  - `planned_workouts` - Weekly workout planning
+  - `body_measurements` - Body stats tracking
+- Added corresponding indexes for performance
+- Updated DROP statements for clean reinstalls
+
+#### 8.7 Unit Test Suite
+**New Directory:** `tests/`
+
+**Test Files:**
+- `conftest.py` - Pytest fixtures (app, client, sample data)
+- `test_models.py` - Model unit tests
+- `test_routes.py` - Route/blueprint tests
+
+**Test Coverage:**
+- User model: creation, password hashing, uniqueness
+- Exercise model: creation, filtering
+- StrengthLog: 1RM estimation, volume calculation
+- RunningLog: pace calculation, TRIMP score
+- RecoveryLog: overall score, readiness level
+- BodyMeasurement: creation, ratios, latest retrieval
+- WorkoutSession: creation, total volume
+- All route authentication requirements
+- Page load tests for all blueprints
+
+**Configuration:**
+- `pytest.ini` - Test configuration
+- `app/config.py` - Added TestingConfig with SQLite in-memory
+- `requirements.txt` - Added pytest, pytest-cov
+
+**Run Tests:**
+```bash
+# From project root
+pytest
+
+# With coverage report
+pytest --cov=app --cov-report=html
+```
+
+#### 8.8 Workout Comparison (Analytics)
+- Week-over-week comparison view at `/analytics/comparison`
+- Summary cards showing percentage changes:
+  - Strength volume (+/-%)
+  - Running distance (+/-%)
+  - Strength sessions (+/-%)
+  - Running sessions (+/-%)
+- Side-by-side stats for this week vs last week:
+  - Strength: sessions, volume (kg), sets logged
+  - Running: sessions, distance (km), duration (min)
+- Chart.js bar charts comparing metrics
+- Muscle group volume breakdown by week
+
+**New API Endpoint:** `GET /analytics/api/week-comparison`
+
+#### 8.9 PR History Graph (Strength Analytics)
+- Added to `/analytics/strength` page
+- Exercise selector dropdown to view PR progression
+- Line chart showing estimated 1RM over time
+- PR markers highlighted in gold on the chart
+- Tooltip shows 1RM value and max weight used
+- Recent PRs milestone list below chart
+
+**New API Endpoint:** `GET /analytics/api/pr-history/<exercise_id>`
+
+#### 8.10 Running Pace Zones (Running Analytics)
+- Added to `/analytics/running` page
+- Heart rate zone distribution visualization
+- 5 training zones based on max HR percentage:
+  - Zone 1 (Recovery): 50-60% max HR - gray
+  - Zone 2 (Aerobic): 60-70% max HR - green
+  - Zone 3 (Tempo): 70-80% max HR - yellow
+  - Zone 4 (Threshold): 80-90% max HR - orange
+  - Zone 5 (VO2 Max): 90-100% max HR - red
+- Horizontal bar visualization showing time in each zone
+- Summary stats: total hours, estimated max HR, aerobic percentage
+- Helps ensure proper 80/20 polarized training distribution
+
+**New API Endpoint:** `GET /analytics/api/running-zones`
 
 ---
 

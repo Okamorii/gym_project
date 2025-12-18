@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+
+{% block title %}Body Measurements - Workout Tracker{% endblock %}
+
+{% block content %}
+<div class="body-page">
+    <header class="page-header">
+        <h1>Body Measurements</h1>
+        <a href="{{ url_for('body.add_measurement') }}" class="btn btn-primary">Add Measurement</a>
+    </header>
+
+    {% if latest %}
+    <!-- Latest Stats -->
+    <section class="card">
+        <h2>Current Stats <span class="text-secondary text-sm">({{ latest.measurement_date }})</span></h2>
+        <div class="body-stats-grid">
+            {% if latest.weight_kg %}
+            <div class="body-stat">
+                <span class="body-stat-value">{{ latest.weight_kg }}</span>
+                <span class="body-stat-label">Weight (kg)</span>
+                {% if comparison and 'weight_kg' in comparison %}
+                <span class="body-stat-change {% if comparison.weight_kg.change > 0 %}up{% elif comparison.weight_kg.change < 0 %}down{% endif %}">
+                    {{ '%+.1f'|format(comparison.weight_kg.change) }}kg
+                </span>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            {% if latest.body_fat_pct %}
+            <div class="body-stat">
+                <span class="body-stat-value">{{ latest.body_fat_pct }}%</span>
+                <span class="body-stat-label">Body Fat</span>
+                {% if comparison and 'body_fat_pct' in comparison %}
+                <span class="body-stat-change {% if comparison.body_fat_pct.change > 0 %}up{% elif comparison.body_fat_pct.change < 0 %}down{% endif %}">
+                    {{ '%+.1f'|format(comparison.body_fat_pct.change) }}%
+                </span>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            {% if latest.waist_to_hip_ratio %}
+            <div class="body-stat">
+                <span class="body-stat-value">{{ latest.waist_to_hip_ratio }}</span>
+                <span class="body-stat-label">Waist/Hip Ratio</span>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- Circumferences -->
+    <section class="card">
+        <h2>Measurements</h2>
+        <div class="measurement-grid">
+            {% if latest.chest_cm %}
+            <div class="measurement-item">
+                <span class="measurement-label">Chest</span>
+                <span class="measurement-value">{{ latest.chest_cm }} cm</span>
+                {% if comparison and 'chest_cm' in comparison %}
+                <span class="measurement-change {% if comparison.chest_cm.change > 0 %}up{% else %}down{% endif %}">
+                    {{ '%+.1f'|format(comparison.chest_cm.change) }}
+                </span>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            {% if latest.shoulders_cm %}
+            <div class="measurement-item">
+                <span class="measurement-label">Shoulders</span>
+                <span class="measurement-value">{{ latest.shoulders_cm }} cm</span>
+            </div>
+            {% endif %}
+
+            {% if latest.waist_cm %}
+            <div class="measurement-item">
+                <span class="measurement-label">Waist</span>
+                <span class="measurement-value">{{ latest.waist_cm }} cm</span>
+                {% if comparison and 'waist_cm' in comparison %}
+                <span class="measurement-change {% if comparison.waist_cm.change < 0 %}up{% else %}down{% endif %}">
+                    {{ '%+.1f'|format(comparison.waist_cm.change) }}
+                </span>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            {% if latest.hips_cm %}
+            <div class="measurement-item">
+                <span class="measurement-label">Hips</span>
+                <span class="measurement-value">{{ latest.hips_cm }} cm</span>
+            </div>
+            {% endif %}
+
+            {% if latest.arm_avg_cm %}
+            <div class="measurement-item">
+                <span class="measurement-label">Arms (avg)</span>
+                <span class="measurement-value">{{ latest.arm_avg_cm }} cm</span>
+            </div>
+            {% endif %}
+
+            {% if latest.thigh_avg_cm %}
+            <div class="measurement-item">
+                <span class="measurement-label">Thighs (avg)</span>
+                <span class="measurement-value">{{ latest.thigh_avg_cm }} cm</span>
+            </div>
+            {% endif %}
+
+            {% if latest.neck_cm %}
+            <div class="measurement-item">
+                <span class="measurement-label">Neck</span>
+                <span class="measurement-value">{{ latest.neck_cm }} cm</span>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- Weight Progress Chart -->
+    <section class="card">
+        <h2>Weight Progress</h2>
+        <div class="chart-container">
+            <canvas id="weightChart"></canvas>
+        </div>
+    </section>
+    {% else %}
+    <section class="card">
+        <div class="empty-state">
+            <div class="empty-icon">&#128207;</div>
+            <h3>No measurements yet</h3>
+            <p>Start tracking your body measurements to see progress over time.</p>
+            <a href="{{ url_for('body.add_measurement') }}" class="btn btn-primary">Add First Measurement</a>
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- History -->
+    {% if measurements %}
+    <section class="card">
+        <h2>History</h2>
+        <ul class="measurement-history">
+            {% for m in measurements %}
+            <li class="history-item">
+                <a href="{{ url_for('body.view_measurement', measurement_id=m.measurement_id) }}">
+                    <span class="history-date">{{ m.measurement_date }}</span>
+                    <span class="history-summary">
+                        {% if m.weight_kg %}{{ m.weight_kg }}kg{% endif %}
+                        {% if m.body_fat_pct %} | {{ m.body_fat_pct }}%{% endif %}
+                    </span>
+                    <span class="history-arrow">&#8250;</span>
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+    </section>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if latest %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+Chart.defaults.color = '#a0a0b0';
+Chart.defaults.borderColor = '#2a2a40';
+
+fetch('{{ url_for("body.progress_data", field="weight_kg") }}?weeks=24')
+    .then(r => r.json())
+    .then(data => {
+        if (data.length === 0) return;
+
+        new Chart(document.getElementById('weightChart'), {
+            type: 'line',
+            data: {
+                labels: data.map(d => d.date),
+                datasets: [{
+                    label: 'Weight (kg)',
+                    data: data.map(d => d.value),
+                    borderColor: '#6366f1',
+                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        grid: { color: '#2a2a40' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: {
+                            maxTicksLimit: 8
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endif %}
+{% endblock %}

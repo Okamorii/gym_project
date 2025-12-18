@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}Measurement {{ measurement.measurement_date }} - Workout Tracker{% endblock %}
+
+{% block content %}
+<div class="body-page">
+    <header class="page-header">
+        <h1>{{ measurement.measurement_date }}</h1>
+    </header>
+
+    <section class="card">
+        <h2>Core Metrics</h2>
+        <div class="measurement-detail-grid">
+            {% if measurement.weight_kg %}
+            <div class="detail-item">
+                <span class="detail-label">Weight</span>
+                <span class="detail-value">{{ measurement.weight_kg }} kg</span>
+            </div>
+            {% endif %}
+
+            {% if measurement.body_fat_pct %}
+            <div class="detail-item">
+                <span class="detail-label">Body Fat</span>
+                <span class="detail-value">{{ measurement.body_fat_pct }}%</span>
+            </div>
+            {% endif %}
+
+            {% if measurement.waist_to_hip_ratio %}
+            <div class="detail-item">
+                <span class="detail-label">Waist/Hip Ratio</span>
+                <span class="detail-value">{{ measurement.waist_to_hip_ratio }}</span>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <section class="card">
+        <h2>Upper Body</h2>
+        <div class="measurement-detail-grid">
+            {% if measurement.neck_cm %}
+            <div class="detail-item">
+                <span class="detail-label">Neck</span>
+                <span class="detail-value">{{ measurement.neck_cm }} cm</span>
+            </div>
+            {% endif %}
+
+            {% if measurement.shoulders_cm %}
+            <div class="detail-item">
+                <span class="detail-label">Shoulders</span>
+                <span class="detail-value">{{ measurement.shoulders_cm }} cm</span>
+            </div>
+            {% endif %}
+
+            {% if measurement.chest_cm %}
+            <div class="detail-item">
+                <span class="detail-label">Chest</span>
+                <span class="detail-value">{{ measurement.chest_cm }} cm</span>
+            </div>
+            {% endif %}
+
+            {% if measurement.left_arm_cm %}
+            <div class="detail-item">
+                <span class="detail-label">Left Arm</span>
+                <span class="detail-value">{{ measurement.left_arm_cm }} cm</span>
+            </div>
+            {% endif %}
+
+            {% if measurement.right_arm_cm %}
+            <div class="detail-item">
+                <span class="detail-label">Right Arm</span>
+                <span class="detail-value">{{ measurement.right_arm_cm }} cm</span>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <section class="card">
+        <h2>Torso & Lower Body</h2>
+        <div class="measurement-detail-grid">
+            {% if measurement.waist_cm %}
+            <div class="detail-item">
+                <span class="detail-label">Waist</span>
+                <span class="detail-value">{{ measurement.waist_cm }} cm</span>
+            </div>
+            {% endif %}
+
+            {% if measurement.hips_cm %}
+            <div class="detail-item">
+                <span class="detail-label">Hips</span>
+                <span class="detail-value">{{ measurement.hips_cm }} cm</span>
+            </div>
+            {% endif %}
+
+            {% if measurement.left_thigh_cm %}
+            <div class="detail-item">
+                <span class="detail-label">Left Thigh</span>
+                <span class="detail-value">{{ measurement.left_thigh_cm }} cm</span>
+            </div>
+            {% endif %}
+
+            {% if measurement.right_thigh_cm %}
+            <div class="detail-item">
+                <span class="detail-label">Right Thigh</span>
+                <span class="detail-value">{{ measurement.right_thigh_cm }} cm</span>
+            </div>
+            {% endif %}
+
+            {% if measurement.left_calf_cm %}
+            <div class="detail-item">
+                <span class="detail-label">Left Calf</span>
+                <span class="detail-value">{{ measurement.left_calf_cm }} cm</span>
+            </div>
+            {% endif %}
+
+            {% if measurement.right_calf_cm %}
+            <div class="detail-item">
+                <span class="detail-label">Right Calf</span>
+                <span class="detail-value">{{ measurement.right_calf_cm }} cm</span>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+
+    {% if measurement.notes %}
+    <section class="card">
+        <h2>Notes</h2>
+        <p>{{ measurement.notes }}</p>
+    </section>
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('body.delete_measurement', measurement_id=measurement.measurement_id) }}"
+          class="delete-form" style="margin-top: 1rem;">
+        <button type="submit" class="btn btn-danger btn-block">Delete Measurement</button>
+    </form>
+</div>
+{% endblock %}

@@ -111,10 +111,21 @@
     </section>
     {% endif %}
 
-    <!-- Recovery -->
-    {% if today_recovery %}
-    <section class="card">
-        <h2>Today's Recovery</h2>
+    <!-- Readiness Score -->
+    {% if today_recovery and today_recovery.readiness_level %}
+    {% set readiness = today_recovery.readiness_level %}
+    <section class="card readiness-card readiness-{{ readiness.color }}">
+        <div class="readiness-header">
+            <h2>Today's Readiness</h2>
+            <span class="readiness-score">{{ today_recovery.overall_recovery_score }}/10</span>
+        </div>
+        <div class="readiness-gauge">
+            <div class="readiness-meter">
+                <div class="readiness-fill readiness-fill-{{ readiness.color }}" style="width: {{ today_recovery.overall_recovery_score * 10 }}%"></div>
+            </div>
+            <span class="readiness-label readiness-label-{{ readiness.color }}">{{ readiness.label }}</span>
+        </div>
+        <p class="readiness-advice">{{ readiness.advice }}</p>
         <div class="recovery-grid">
             <div class="recovery-item">
                 <span class="recovery-label">Sleep</span>
@@ -132,6 +143,15 @@
                 <span class="recovery-label">Motivation</span>
                 <span class="recovery-value">{{ today_recovery.motivation_score }}/10</span>
             </div>
+        </div>
+    </section>
+    {% elif not today_recovery %}
+    <section class="card">
+        <div class="readiness-prompt">
+            <span class="readiness-prompt-icon">&#128564;</span>
+            <h3>How are you feeling today?</h3>
+            <p>Log your recovery to see your readiness score</p>
+            <a href="{{ url_for('recovery.index') }}" class="btn btn-primary">Log Recovery</a>
         </div>
     </section>
     {% endif %}

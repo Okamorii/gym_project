@@ -13,12 +13,15 @@ class PlannedWorkout(db.Model):
     description = db.Column(db.String(255))
     target_duration = db.Column(db.Integer)  # minutes
     target_distance = db.Column(db.Numeric(6, 2))  # km for running
+    template_id = db.Column(db.Integer, db.ForeignKey('workout_templates.template_id'))  # Link to workout template
     completed = db.Column(db.Boolean, default=False)
     completed_session_id = db.Column(db.Integer, db.ForeignKey('workout_sessions.session_id'))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Relationship to actual workout session
     completed_session = db.relationship('WorkoutSession', foreign_keys=[completed_session_id])
+    # Relationship to workout template
+    template = db.relationship('WorkoutTemplate', foreign_keys=[template_id])
 
     @classmethod
     def get_week_plan(cls, user_id, week_start=None):

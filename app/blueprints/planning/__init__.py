@@ -1,8 +1,9 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
 from datetime import date, timedelta
+import calendar
 from app import db
-from app.models import PlannedWorkout, WorkoutSession
+from app.models import PlannedWorkout, WorkoutSession, WorkoutTemplate
 
 planning_bp = Blueprint('planning', __name__)
 
@@ -10,58 +11,103 @@ planning_bp = Blueprint('planning', __name__)
 @planning_bp.route('/')
 @login_required
 def index():
-    """Show weekly planning view."""
-    # Get week offset from query params (0 = current week)
-    week_offset = request.args.get('week', 0, type=int)
-
+    """Show monthly calendar planning view."""
+    # Get month/year from query params
     today = date.today()
-    week_start = today - timedelta(days=today.weekday()) + timedelta(weeks=week_offset)
-    week_end = week_start + timedelta(days=6)
+    year = request.args.get('year', today.year, type=int)
+    month = request.args.get('month', today.month, type=int)
 
-    # Get planned workouts for this week
-    plans = PlannedWorkout.get_week_plan(current_user.user_id, week_start)
+    # Handle month overflow
+    if month > 12:
+        month = 1
+        year += 1
+    elif month < 1:
+        month = 12
+        year -= 1
 
-    # Get actual workouts for this week
-    actual_workouts = WorkoutSession.query.filter(
-        WorkoutSession.user_id == current_user.user_id,
-        WorkoutSession.session_date >= week_start,
-        WorkoutSession.session_date <= week_end
+    # Get first and last day of month
+    first_day = date(year, month, 1)
+    _, last_day_num = calendar.monthrange(year, month)
+    last_day = date(year, month, last_day_num)
+
+    # Get start of calendar (may include days from previous month)
+    cal_start = first_day - timedelta(days=first_day.weekday())
+    # Get end of calendar (may include days from next month)
+    cal_end = last_day + timedelta(days=(6 - last_day.weekday()))
+
+    # Get all plans for the visible calendar range
+    plans = PlannedWorkout.query.filter(
+        PlannedWorkout.user_id == current_user.user_id,
+        PlannedWorkout.planned_date >= cal_start,
+        PlannedWorkout.planned_date <= cal_end
     ).all()
 
-    # Create a dict for easy lookup
+    # Get actual workouts for the visible range
+    actual_workouts = WorkoutSession.query.filter(
+        WorkoutSession.user_id == current_user.user_id,
+        WorkoutSession.session_date >= cal_start,
+        WorkoutSession.session_date <= cal_end
+    ).all()
+
+    # Create lookup dicts
+    plans_by_date = {}
+    for plan in plans:
+        if plan.planned_date not in plans_by_date:
+            plans_by_date[plan.planned_date] = []
+        plans_by_date[plan.planned_date].append(plan)
+
     actual_by_date = {}
     for workout in actual_workouts:
         if workout.session_date not in actual_by_date:
             actual_by_date[workout.session_date] = []
         actual_by_date[workout.session_date].append(workout)
 
-    # Build week data
-    week_days = []
-    for i in range(7):
-        day_date = week_start + timedelta(days=i)
-        day_plans = [p for p in plans if p.planned_date == day_date]
-        day_actual = actual_by_date.get(day_date, [])
+    # Build calendar weeks
+    calendar_weeks = []
+    current_date = cal_start
+    while current_date <= cal_end:
+        week = []
+        for _ in range(7):
+            day_plans = plans_by_date.get(current_date, [])
+            day_actual = actual_by_date.get(current_date, [])
 
-        week_days.append({
-            'date': day_date,
-            'day_name': day_date.strftime('%A'),
-            'is_today': day_date == today,
-            'is_past': day_date < today,
-            'plans': day_plans,
-            'actual': day_actual
-        })
+            week.append({
+                'date': current_date,
+                'day': current_date.day,
+                'is_today': current_date == today,
+                'is_current_month': current_date.month == month,
+                'is_past': current_date < today,
+                'plans': day_plans,
+                'actual': day_actual
+            })
+            current_date += timedelta(days=1)
+        calendar_weeks.append(week)
+
+    # Get user's workout templates for the quick-add dropdown
+    templates = WorkoutTemplate.get_user_templates(current_user.user_id)
 
     # Completion stats
     stats = PlannedWorkout.get_completion_stats(current_user.user_id)
 
+    # Month navigation
+    prev_month = month - 1 if month > 1 else 12
+    prev_year = year if month > 1 else year - 1
+    next_month = month + 1 if month < 12 else 1
+    next_year = year if month < 12 else year + 1
+
     return render_template(
         'planning/index.html',
-        week_days=week_days,
-        week_start=week_start,
-        week_end=week_end,
-        week_offset=week_offset,
+        calendar_weeks=calendar_weeks,
+        year=year,
+        month=month,
+        month_name=calendar.month_name[month],
+        prev_month=prev_month,
+        prev_year=prev_year,
+        next_month=next_month,
+        next_year=next_year,
         stats=stats,
-        today=today
+        today=today,
+        templates=templates
     )
 
 
@@ -75,6 +121,7 @@ def add_plan():
         description = request.form.get('description', '').strip()
         target_duration = request.form.get('target_duration', type=int)
         target_distance = request.form.get('target_distance', type=float)
+        template_id = request.form.get('template_id', type=int)
 
         if not planned_date or not workout_type:
             flash('Date and workout type are required.', 'error')
@@ -86,17 +133,22 @@ def add_plan():
             workout_type=workout_type,
             description=description or None,
             target_duration=target_duration,
-            target_distance=target_distance
+            target_distance=target_distance,
+            template_id=template_id if template_id else None
         )
         db.session.add(plan)
         db.session.commit()
 
         flash('Workout planned!', 'success')
-        return redirect(url_for('planning.index'))
+
+        # Redirect back to the same month view
+        plan_dt = date.fromisoformat(planned_date)
+        return redirect(url_for('planning.index', year=plan_dt.year, month=plan_dt.month))
 
     # For GET, show quick add form
     plan_date = request.args.get('date', date.today().isoformat())
-    return render_template('planning/add.html', plan_date=plan_date)
+    templates = WorkoutTemplate.get_user_templates(current_user.user_id)
+    return render_template('planning/add.html', plan_date=plan_date, templates=templates)
 
 
 @planning_bp.route('/<int:plan_id>/complete', methods=['POST'])

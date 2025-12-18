@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+
+{% block title %}Week Comparison - Workout Tracker{% endblock %}
+
+{% block content %}
+<div class="analytics-page">
+    <header class="page-header">
+        <h1>Week Comparison</h1>
+        <p class="text-secondary">This week vs last week</p>
+    </header>
+
+    <!-- Summary Cards -->
+    <div class="comparison-summary" id="comparisonSummary">
+        <p class="loading">Loading comparison data...</p>
+    </div>
+
+    <!-- Strength Comparison -->
+    <section class="card">
+        <h2>Strength Training</h2>
+        <div class="comparison-grid" id="strengthComparison">
+            <div class="comparison-column">
+                <h3 class="comparison-header">This Week</h3>
+                <div class="comparison-stats" id="thisWeekStrength"></div>
+            </div>
+            <div class="comparison-column">
+                <h3 class="comparison-header">Last Week</h3>
+                <div class="comparison-stats" id="lastWeekStrength"></div>
+            </div>
+        </div>
+        <div class="chart-container" style="height: 250px;">
+            <canvas id="strengthComparisonChart"></canvas>
+        </div>
+    </section>
+
+    <!-- Running Comparison -->
+    <section class="card">
+        <h2>Running</h2>
+        <div class="comparison-grid" id="runningComparison">
+            <div class="comparison-column">
+                <h3 class="comparison-header">This Week</h3>
+                <div class="comparison-stats" id="thisWeekRunning"></div>
+            </div>
+            <div class="comparison-column">
+                <h3 class="comparison-header">Last Week</h3>
+                <div class="comparison-stats" id="lastWeekRunning"></div>
+            </div>
+        </div>
+        <div class="chart-container" style="height: 250px;">
+            <canvas id="runningComparisonChart"></canvas>
+        </div>
+    </section>
+
+    <!-- Muscle Group Comparison -->
+    <section class="card">
+        <h2>Volume by Muscle Group</h2>
+        <div class="chart-container" style="height: 300px;">
+            <canvas id="muscleComparisonChart"></canvas>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+Chart.defaults.color = '#a0a0b0';
+Chart.defaults.borderColor = '#2a2a40';
+
+fetch('{{ url_for("analytics.week_comparison") }}')
+    .then(r => r.json())
+    .then(data => {
+        // Summary cards
+        const summaryHtml = `
+            <div class="summary-card ${data.changes.strength_volume >= 0 ? 'positive' : 'negative'}">
+                <span class="summary-label">Strength Volume</span>
+                <span class="summary-change">${data.changes.strength_volume >= 0 ? '+' : ''}${data.changes.strength_volume}%</span>
+            </div>
+            <div class="summary-card ${data.changes.running_distance >= 0 ? 'positive' : 'negative'}">
+                <span class="summary-label">Running Distance</span>
+                <span class="summary-change">${data.changes.running_distance >= 0 ? '+' : ''}${data.changes.running_distance}%</span>
+            </div>
+            <div class="summary-card ${data.changes.strength_sessions >= 0 ? 'positive' : 'negative'}">
+                <span class="summary-label">Strength Sessions</span>
+                <span class="summary-change">${data.changes.strength_sessions >= 0 ? '+' : ''}${data.changes.strength_sessions}%</span>
+            </div>
+            <div class="summary-card ${data.changes.running_sessions >= 0 ? 'positive' : 'negative'}">
+                <span class="summary-label">Running Sessions</span>
+                <span class="summary-change">${data.changes.running_sessions >= 0 ? '+' : ''}${data.changes.running_sessions}%</span>
+            </div>
+        `;
+        document.getElementById('comparisonSummary').innerHTML = summaryHtml;
+
+        // Strength stats
+        document.getElementById('thisWeekStrength').innerHTML = `
+            <div class="stat-item"><span class="stat-label">Sessions</span><span class="stat-value">${data.this_week.stats.strength.sessions}</span></div>
+            <div class="stat-item"><span class="stat-label">Volume</span><span class="stat-value">${Math.round(data.this_week.stats.strength.volume).toLocaleString()} kg</span></div>
+            <div class="stat-item"><span class="stat-label">Sets Logged</span><span class="stat-value">${data.this_week.stats.strength.sets}</span></div>
+        `;
+        document.getElementById('lastWeekStrength').innerHTML = `
+            <div class="stat-item"><span class="stat-label">Sessions</span><span class="stat-value">${data.last_week.stats.strength.sessions}</span></div>
+            <div class="stat-item"><span class="stat-label">Volume</span><span class="stat-value">${Math.round(data.last_week.stats.strength.volume).toLocaleString()} kg</span></div>
+            <div class="stat-item"><span class="stat-label">Sets Logged</span><span class="stat-value">${data.last_week.stats.strength.sets}</span></div>
+        `;
+
+        // Running stats
+        document.getElementById('thisWeekRunning').innerHTML = `
+            <div class="stat-item"><span class="stat-label">Sessions</span><span class="stat-value">${data.this_week.stats.running.sessions}</span></div>
+            <div class="stat-item"><span class="stat-label">Distance</span><span class="stat-value">${data.this_week.stats.running.distance.toFixed(1)} km</span></div>
+            <div class="stat-item"><span class="stat-label">Duration</span><span class="stat-value">${data.this_week.stats.running.duration} min</span></div>
+        `;
+        document.getElementById('lastWeekRunning').innerHTML = `
+            <div class="stat-item"><span class="stat-label">Sessions</span><span class="stat-value">${data.last_week.stats.running.sessions}</span></div>
+            <div class="stat-item"><span class="stat-label">Distance</span><span class="stat-value">${data.last_week.stats.running.distance.toFixed(1)} km</span></div>
+            <div class="stat-item"><span class="stat-label">Duration</span><span class="stat-value">${data.last_week.stats.running.duration} min</span></div>
+        `;
+
+        // Strength comparison chart
+        new Chart(document.getElementById('strengthComparisonChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Sessions', 'Volume (÷1000)', 'Sets'],
+                datasets: [
+                    {
+                        label: 'This Week',
+                        data: [
+                            data.this_week.stats.strength.sessions,
+                            data.this_week.stats.strength.volume / 1000,
+                            data.this_week.stats.strength.sets
+                        ],
+                        backgroundColor: '#6366f1'
+                    },
+                    {
+                        label: 'Last Week',
+                        data: [
+                            data.last_week.stats.strength.sessions,
+                            data.last_week.stats.strength.volume / 1000,
+                            data.last_week.stats.strength.sets
+                        ],
+                        backgroundColor: '#4b5563'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top' }
+                },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: '#2a2a40' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        // Running comparison chart
+        new Chart(document.getElementById('runningComparisonChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Sessions', 'Distance (km)', 'Duration (÷10)'],
+                datasets: [
+                    {
+                        label: 'This Week',
+                        data: [
+                            data.this_week.stats.running.sessions,
+                            data.this_week.stats.running.distance,
+                            data.this_week.stats.running.duration / 10
+                        ],
+                        backgroundColor: '#22c55e'
+                    },
+                    {
+                        label: 'Last Week',
+                        data: [
+                            data.last_week.stats.running.sessions,
+                            data.last_week.stats.running.distance,
+                            data.last_week.stats.running.duration / 10
+                        ],
+                        backgroundColor: '#4b5563'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top' }
+                },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: '#2a2a40' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        // Muscle group comparison chart
+        const muscleGroups = [...new Set([
+            ...Object.keys(data.this_week.stats.muscle_volume),
+            ...Object.keys(data.last_week.stats.muscle_volume)
+        ])].filter(g => g);
+
+        if (muscleGroups.length > 0) {
+            new Chart(document.getElementById('muscleComparisonChart'), {
+                type: 'bar',
+                data: {
+                    labels: muscleGroups,
+                    datasets: [
+                        {
+                            label: 'This Week',
+                            data: muscleGroups.map(g => (data.this_week.stats.muscle_volume[g] || 0) / 1000),
+                            backgroundColor: '#6366f1'
+                        },
+                        {
+                            label: 'Last Week',
+                            data: muscleGroups.map(g => (data.last_week.stats.muscle_volume[g] || 0) / 1000),
+                            backgroundColor: '#4b5563'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top' },
+                        title: { display: true, text: 'Volume (×1000 kg)' }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#2a2a40' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

@@ -17,8 +17,40 @@
         <a href="{{ url_for('analytics.running_analytics') }}" class="card analytics-card">
             <span class="icon">&#127939;</span>
             <h2>Running</h2>
-            <p>Mileage, pace, trends</p>
+            <p>Mileage, pace, zones</p>
         </a>
+        <a href="{{ url_for('analytics.comparison') }}" class="card analytics-card">
+            <span class="icon">&#128200;</span>
+            <h2>Compare</h2>
+            <p>Week vs week</p>
+        </a>
+    </div>
+
+    <!-- Activity Heatmap -->
+    <div class="card">
+        <h2>Activity Heatmap</h2>
+        <p class="text-secondary text-sm">Your workout consistency over the past year</p>
+        <div class="heatmap-container">
+            <div class="heatmap-months" id="heatmapMonths"></div>
+            <div class="heatmap-wrapper">
+                <div class="heatmap-days">
+                    <span>Mon</span>
+                    <span>Wed</span>
+                    <span>Fri</span>
+                </div>
+                <div class="heatmap-grid" id="heatmapGrid"></div>
+            </div>
+            <div class="heatmap-legend">
+                <span class="text-secondary">Less</span>
+                <div class="heatmap-cell level-0"></div>
+                <div class="heatmap-cell level-1"></div>
+                <div class="heatmap-cell level-2"></div>
+                <div class="heatmap-cell level-3"></div>
+                <div class="heatmap-cell level-4"></div>
+                <span class="text-secondary">More</span>
+            </div>
+        </div>
+        <div class="heatmap-stats" id="heatmapStats"></div>
     </div>
 
     <!-- Workout Frequency -->
@@ -56,6 +88,135 @@
 // Chart.js dark theme defaults
 Chart.defaults.color = '#a0a0b0';
 Chart.defaults.borderColor = '#2a2a40';
+
+// Activity Heatmap
+fetch('{{ url_for("analytics.activity_heatmap") }}')
+    .then(r => r.json())
+    .then(data => {
+        const grid = document.getElementById('heatmapGrid');
+        const monthsEl = document.getElementById('heatmapMonths');
+        const statsEl = document.getElementById('heatmapStats');
+
+        if (!data.weeks || data.weeks.length === 0) {
+            grid.innerHTML = '<p class="empty-state-text">No workout data yet.</p>';
+            return;
+        }
+
+        // Build grid (weeks as columns, days as rows)
+        let totalWorkouts = 0;
+        let totalDays = 0;
+        let currentStreak = 0;
+        let maxStreak = 0;
+        let tempStreak = 0;
+        const today = new Date().toISOString().split('T')[0];
+
+        // Track months for labels
+        const months = [];
+        let lastMonth = -1;
+
+        data.weeks.forEach((week, weekIdx) => {
+            const weekCol = document.createElement('div');
+            weekCol.className = 'heatmap-week';
+
+            // Check if this is a new month
+            const firstDayOfWeek = new Date(week[0].date);
+            const month = firstDayOfWeek.getMonth();
+            if (month !== lastMonth) {
+                months.push({
+                    name: firstDayOfWeek.toLocaleString('default', { month: 'short' }),
+                    position: weekIdx
+                });
+                lastMonth = month;
+            }
+
+            week.forEach(day => {
+                const cell = document.createElement('div');
+                cell.className = 'heatmap-cell';
+
+                // Determine level based on count
+                let level = 0;
+                if (day.count === 1) level = 1;
+                else if (day.count === 2) level = 2;
+                else if (day.count === 3) level = 3;
+                else if (day.count >= 4) level = 4;
+
+                cell.classList.add(`level-${level}`);
+
+                // Color based on workout type
+                if (day.strength > 0 && day.running > 0) {
+                    cell.classList.add('mixed');
+                } else if (day.strength > 0) {
+                    cell.classList.add('strength');
+                } else if (day.running > 0) {
+                    cell.classList.add('running');
+                }
+
+                // Tooltip
+                const dateObj = new Date(day.date);
+                const dateStr = dateObj.toLocaleDateString('en-US', {
+                    weekday: 'short', month: 'short', day: 'numeric'
+                });
+                let tooltip = dateStr;
+                if (day.count > 0) {
+                    tooltip += `: ${day.count} workout${day.count > 1 ? 's' : ''}`;
+                    if (day.strength) tooltip += ` (${day.strength} strength)`;
+                    if (day.running) tooltip += ` (${day.running} running)`;
+                }
+                cell.title = tooltip;
+
+                // Only count days up to today
+                if (day.date <= today) {
+                    totalWorkouts += day.count;
+                    if (day.count > 0) totalDays++;
+
+                    // Streak calculation
+                    if (day.count > 0) {
+                        tempStreak++;
+                        if (day.date === today) {
+                            currentStreak = tempStreak;
+                        }
+                    } else {
+                        maxStreak = Math.max(maxStreak, tempStreak);
+                        tempStreak = 0;
+                    }
+                }
+
+                weekCol.appendChild(cell);
+            });
+
+            grid.appendChild(weekCol);
+        });
+
+        maxStreak = Math.max(maxStreak, tempStreak);
+
+        // Add month labels
+        months.forEach(m => {
+            const label = document.createElement('span');
+            label.textContent = m.name;
+            label.style.left = (m.position * 14) + 'px';
+            monthsEl.appendChild(label);
+        });
+
+        // Show stats
+        statsEl.innerHTML = `
+            <div class="heatmap-stat">
+                <span class="heatmap-stat-value">${totalWorkouts}</span>
+                <span class="heatmap-stat-label">Total Workouts</span>
+            </div>
+            <div class="heatmap-stat">
+                <span class="heatmap-stat-value">${totalDays}</span>
+                <span class="heatmap-stat-label">Active Days</span>
+            </div>
+            <div class="heatmap-stat">
+                <span class="heatmap-stat-value">${currentStreak}</span>
+                <span class="heatmap-stat-label">Current Streak</span>
+            </div>
+            <div class="heatmap-stat">
+                <span class="heatmap-stat-value">${maxStreak}</span>
+                <span class="heatmap-stat-label">Best Streak</span>
+            </div>
+        `;
+    });
 
 // Load PR timeline
 fetch('{{ url_for("analytics.pr_timeline") }}')
