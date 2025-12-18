@@ -706,7 +706,7 @@ docker compose up -d
 # View logs
 docker compose logs -f
 
-# App will be available at http://192.168.0.117:5000
+# App will be available at http://localhost:5000
 ```
 
 **Using Makefile Commands:**
