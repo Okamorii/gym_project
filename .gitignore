@@ -63,3 +63,8 @@ Thumbs.db
 
 # Local development
 *.local
+
+# Project documentation (internal)
+followup.md
+project.md
+gym.xlsx
