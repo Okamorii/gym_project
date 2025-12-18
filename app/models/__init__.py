@@ -4,6 +4,7 @@ from .workout import WorkoutSession, StrengthLog, RunningLog
 from .records import PersonalRecord
 from .recovery import RecoveryLog
 from .planning import PlannedWorkout
+from .template import WorkoutTemplate, TemplateExercise
 
 __all__ = [
     'User',
@@ -15,5 +16,7 @@ __all__ = [
     'RunningLog',
     'PersonalRecord',
     'RecoveryLog',
-    'PlannedWorkout'
+    'PlannedWorkout',
+    'WorkoutTemplate',
+    'TemplateExercise'
 ]

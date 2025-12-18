@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Workout Templates - Workout Tracker{% endblock %}
+
+{% block content %}
+<div class="container">
+    <header class="page-header">
+        <h1>Workout Templates</h1>
+        <p class="text-secondary">Save and reuse your workout routines</p>
+    </header>
+
+    <div class="template-actions">
+        <a href="{{ url_for('templates.new_template') }}" class="btn btn-primary btn-block">
+            + Create New Template
+        </a>
+    </div>
+
+    {% if templates %}
+    <section class="templates-list">
+        {% for template in templates %}
+        <a href="{{ url_for('templates.view_template', template_id=template.template_id) }}" class="template-card card">
+            <div class="template-header">
+                <h3 class="template-name">{{ template.name }}</h3>
+                <span class="template-type-badge {{ template.workout_type }}">
+                    {{ template.workout_type.replace('_', ' ').title() }}
+                </span>
+            </div>
+            {% if template.description %}
+            <p class="template-description">{{ template.description }}</p>
+            {% endif %}
+            <div class="template-meta">
+                <span class="exercise-count">{{ template.exercises.count() }} exercises</span>
+                <span class="template-date">Updated {{ template.updated_at.strftime('%b %d') }}</span>
+            </div>
+        </a>
+        {% endfor %}
+    </section>
+    {% else %}
+    <div class="empty-state card">
+        <div class="empty-icon">&#128221;</div>
+        <h3>No Templates Yet</h3>
+        <p>Create your first workout template to save time logging exercises.</p>
+        <a href="{{ url_for('templates.new_template') }}" class="btn btn-primary">
+            Create Template
+        </a>
+    </div>
+    {% endif %}
+
+    <section class="template-tips card">
+        <h3>How Templates Work</h3>
+        <ul class="tips-list">
+            <li><strong>Create once, use often</strong> - Define your exercises, sets, and reps once</li>
+            <li><strong>Smart pre-fill</strong> - Weights auto-fill from your last workout</li>
+            <li><strong>Quick start</strong> - Load a template when starting a new session</li>
+        </ul>
+    </section>
+</div>
+{% endblock %}

@@ -15,6 +15,33 @@
                    value="{{ today }}" required>
         </div>
 
+        <!-- Template Selection -->
+        {% if templates %}
+        <div class="form-group">
+            <label for="template_id">Load from Template (optional)</label>
+            <select id="template_id" name="template_id" class="template-select">
+                <option value="">No template - log exercises manually</option>
+                {% for template in templates %}
+                <option value="{{ template.template_id }}"
+                        {% if preselected_template == template.template_id %}selected{% endif %}>
+                    {{ template.name }} ({{ template.exercises.count() }} exercises)
+                </option>
+                {% endfor %}
+            </select>
+            <p class="form-hint">Templates pre-fill exercises with your last weights</p>
+        </div>
+
+        <!-- Selected Template Preview -->
+        <div class="template-preview" id="templatePreview" style="display: none;">
+            <h4>Template Exercises:</h4>
+            <ul class="template-preview-list" id="templatePreviewList"></ul>
+        </div>
+        {% else %}
+        <div class="template-hint">
+            <p><a href="{{ url_for('templates.new_template') }}">Create a template</a> to save time logging workouts</p>
+        </div>
+        {% endif %}
+
         <div class="form-group">
             <label for="notes">Notes (optional)</label>
             <textarea id="notes" name="notes" rows="2"
@@ -25,5 +52,53 @@
             Start Session
         </button>
     </form>
+
+    <a href="{{ url_for('templates.index') }}" class="btn btn-secondary btn-block">
+        Manage Templates
+    </a>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSelect = document.getElementById('template_id');
+    const preview = document.getElementById('templatePreview');
+    const previewList = document.getElementById('templatePreviewList');
+
+    if (!templateSelect) return;
+
+    templateSelect.addEventListener('change', function() {
+        const templateId = this.value;
+        if (!templateId) {
+            preview.style.display = 'none';
+            return;
+        }
+
+        // Fetch template exercises
+        fetch(`/templates/${templateId}/exercises-data`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.exercises && data.exercises.length > 0) {
+                    let html = '';
+                    data.exercises.forEach(ex => {
+                        const lastInfo = ex.has_history
+                            ? `(Last: ${ex.last_weight ? ex.last_weight + 'kg' : 'no weight'})`
+                            : '(No history)';
+                        html += `<li>${ex.exercise_name} - ${ex.target_sets}x${ex.target_reps} ${lastInfo}</li>`;
+                    });
+                    previewList.innerHTML = html;
+                    preview.style.display = 'block';
+                } else {
+                    preview.style.display = 'none';
+                }
+            });
+    });
+
+    // Trigger change if preselected
+    if (templateSelect.value) {
+        templateSelect.dispatchEvent(new Event('change'));
+    }
+});
+</script>
 {% endblock %}

@@ -2267,3 +2267,380 @@ small {
     outline: none;
     border-color: var(--primary);
 }
+
+/* ============================================
+   WORKOUT TEMPLATES
+   ============================================ */
+
+/* Template List (index page) */
+.templates-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.template-card {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.template-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.template-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.template-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.template-type-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 999px;
+    background: var(--bg-input);
+    color: var(--text-secondary);
+}
+
+.template-type-badge.upper_body { background: rgba(99, 102, 241, 0.2); color: #818cf8; }
+.template-type-badge.lower_body { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
+.template-type-badge.push { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+.template-type-badge.pull { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+.template-type-badge.full_body { background: rgba(139, 92, 246, 0.2); color: #a78bfa; }
+
+.template-description {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.template-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.template-actions {
+    margin-bottom: 1rem;
+}
+
+.template-quick-actions {
+    margin-bottom: 1rem;
+}
+
+.template-actions-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+}
+
+.template-actions-bottom {
+    margin-top: 1.5rem;
+}
+
+/* Template Tips */
+.template-tips {
+    background: rgba(99, 102, 241, 0.1);
+    border: 1px solid var(--primary);
+}
+
+.tips-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.tips-list li {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.9rem;
+}
+
+.tips-list li:last-child {
+    border-bottom: none;
+}
+
+/* Template Edit Page */
+.template-exercise-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.template-exercise-list.editable .template-exercise-item {
+    cursor: grab;
+}
+
+.template-exercise-list.editable .template-exercise-item:active {
+    cursor: grabbing;
+}
+
+.template-exercise-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: var(--bg-input);
+    border-radius: var(--radius-sm);
+    margin-bottom: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.template-exercise-item:hover {
+    background: var(--bg-card);
+}
+
+.template-exercise-item.dragging {
+    opacity: 0.5;
+    background: var(--primary);
+}
+
+.exercise-drag-handle {
+    color: var(--text-secondary);
+    font-size: 1rem;
+    cursor: grab;
+}
+
+.exercise-order {
+    width: 28px;
+    height: 28px;
+    background: var(--primary);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.exercise-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.exercise-name {
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+}
+
+.exercise-target {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.exercise-last-performance {
+    font-size: 0.8rem;
+    color: var(--success);
+    margin-top: 0.25rem;
+}
+
+.exercise-no-history {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.exercise-notes {
+    font-size: 0.8rem;
+    color: var(--warning);
+    margin-top: 0.25rem;
+}
+
+.exercise-muscle {
+    flex-shrink: 0;
+}
+
+.muscle-badge {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.4rem;
+    background: var(--bg-dark);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+}
+
+.last-date {
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+}
+
+/* Template Checklist in Workout Log */
+.template-checklist {
+    border: 2px solid var(--primary);
+}
+
+.template-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.template-progress {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    padding: 0.25rem 0.75rem;
+    background: var(--bg-input);
+    border-radius: 999px;
+}
+
+.template-progress.complete {
+    background: var(--success);
+    color: white;
+}
+
+.template-exercise-checklist {
+    list-style: none;
+    padding: 0;
+    margin: 0.5rem 0 0 0;
+}
+
+.template-checklist-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: var(--bg-input);
+    border-radius: var(--radius-sm);
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 2px solid transparent;
+}
+
+.template-checklist-item:hover:not(.completed) {
+    border-color: var(--primary);
+    background: rgba(99, 102, 241, 0.1);
+}
+
+.template-checklist-item.active {
+    border-color: var(--primary);
+    background: rgba(99, 102, 241, 0.15);
+}
+
+.template-checklist-item.completed {
+    opacity: 0.6;
+    cursor: default;
+}
+
+.template-checklist-item.completed .checklist-checkbox {
+    background: var(--success);
+}
+
+.checklist-checkbox {
+    width: 32px;
+    height: 32px;
+    background: var(--bg-card);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+}
+
+.checklist-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.checklist-exercise-name {
+    font-weight: 500;
+}
+
+.checklist-target {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.checklist-last {
+    color: var(--success);
+}
+
+.checklist-arrow {
+    font-size: 1.5rem;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+}
+
+.template-checklist-item.completed .checklist-arrow {
+    display: none;
+}
+
+/* New Session Template Selection */
+.template-select {
+    font-size: 1rem;
+}
+
+.template-preview {
+    background: var(--bg-input);
+    border-radius: var(--radius-sm);
+    padding: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.template-preview h4 {
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-secondary);
+}
+
+.template-preview-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 0.85rem;
+}
+
+.template-preview-list li {
+    padding: 0.25rem 0;
+    color: var(--text-secondary);
+}
+
+.template-hint {
+    text-align: center;
+    padding: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.form-hint {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-top: 0.25rem;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 2rem;
+}
+
+.empty-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.empty-state h3 {
+    margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+}

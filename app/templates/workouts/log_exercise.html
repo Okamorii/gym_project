@@ -26,6 +26,47 @@
     </div>
     {% endif %}
 
+    <!-- Template Checklist (if using a template) -->
+    {% if template_data %}
+    <section class="card template-checklist">
+        <div class="template-header-row">
+            <h2>{{ template_data.name }}</h2>
+            <span class="template-progress" id="templateProgress">0/{{ template_data.exercises|length }}</span>
+        </div>
+        <p class="text-secondary text-sm">Click an exercise to pre-fill the form</p>
+        <ul class="template-exercise-checklist" id="templateChecklist">
+            {% for ex in template_data.exercises %}
+            <li class="template-checklist-item {% if ex.exercise_id in (current_logs|map(attribute='exercise_id')|list) %}completed{% endif %}"
+                data-exercise-id="{{ ex.exercise_id }}"
+                data-sets="{{ ex.last_sets }}"
+                data-reps="{{ ex.last_reps }}"
+                data-weight="{{ ex.last_weight or '' }}"
+                data-name="{{ ex.exercise_name }}">
+                <div class="checklist-checkbox">
+                    {% if ex.exercise_id in (current_logs|map(attribute='exercise_id')|list) %}
+                    &#10003;
+                    {% else %}
+                    {{ loop.index }}
+                    {% endif %}
+                </div>
+                <div class="checklist-content">
+                    <div class="checklist-exercise-name">{{ ex.exercise_name }}</div>
+                    <div class="checklist-target">
+                        Target: {{ ex.target_sets }}x{{ ex.target_reps }}
+                        {% if ex.has_history %}
+                        <span class="checklist-last">
+                            | Last: {{ ex.last_sets }}x{{ ex.last_reps }}{% if ex.last_weight %} @ {{ ex.last_weight }}kg{% endif %}
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="checklist-arrow">&#8250;</div>
+            </li>
+            {% endfor %}
+        </ul>
+    </section>
+    {% endif %}
+
     <!-- Current Logs -->
     {% if current_logs %}
     <section class="card logged-exercises">
@@ -53,7 +94,7 @@
     {% endif %}
 
     <!-- Add Exercise Form -->
-    <section class="card">
+    <section class="card" id="addSetCard">
         <h2>Add Set</h2>
         <form method="POST" class="exercise-form" id="exerciseForm">
             <div class="form-group">
@@ -176,13 +217,69 @@ document.addEventListener('DOMContentLoaded', function() {
         restTimer.autoStart();
     }
     {% endif %}
+
     const substituteSection = document.getElementById('substituteSection');
     const showSubstitutesBtn = document.getElementById('showSubstitutes');
     const substituteList = document.getElementById('substituteList');
     const lastPerformance = document.getElementById('lastPerformance');
     const lastDetails = document.getElementById('lastDetails');
 
-    // When exercise changes
+    // Template checklist click handlers
+    const checklist = document.getElementById('templateChecklist');
+    if (checklist) {
+        checklist.querySelectorAll('.template-checklist-item:not(.completed)').forEach(item => {
+            item.addEventListener('click', function() {
+                const exerciseId = this.dataset.exerciseId;
+                const sets = this.dataset.sets;
+                const reps = this.dataset.reps;
+                const weight = this.dataset.weight;
+                const name = this.dataset.name;
+
+                // Select the exercise in dropdown
+                exerciseSelect.value = exerciseId;
+
+                // Pre-fill form with last performance
+                document.getElementById('sets').value = sets;
+                document.getElementById('reps').value = reps;
+                document.getElementById('weight_kg').value = weight;
+
+                // Show last performance
+                if (weight) {
+                    lastDetails.textContent = `${sets}x${reps} @ ${weight}kg`;
+                    lastPerformance.style.display = 'block';
+                }
+
+                // Show substitute section
+                substituteSection.style.display = 'block';
+                substituteList.style.display = 'none';
+
+                // Scroll to form
+                document.getElementById('addSetCard').scrollIntoView({ behavior: 'smooth' });
+
+                // Highlight selected item
+                checklist.querySelectorAll('.template-checklist-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // Update progress counter
+        updateTemplateProgress();
+    }
+
+    function updateTemplateProgress() {
+        const progressEl = document.getElementById('templateProgress');
+        if (!progressEl || !checklist) return;
+
+        const total = checklist.querySelectorAll('.template-checklist-item').length;
+        const completed = checklist.querySelectorAll('.template-checklist-item.completed').length;
+        progressEl.textContent = `${completed}/${total}`;
+
+        if (completed === total && total > 0) {
+            progressEl.classList.add('complete');
+        }
+    }
+
+    // When exercise changes (manual selection)
     exerciseSelect.addEventListener('change', function() {
         const exerciseId = this.value;
         if (!exerciseId) {
@@ -193,6 +290,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
         substituteSection.style.display = 'block';
         substituteList.style.display = 'none';
+
+        // Check if this is from template (already pre-filled)
+        if (checklist) {
+            const templateItem = checklist.querySelector(`[data-exercise-id="${exerciseId}"]`);
+            if (templateItem && templateItem.classList.contains('active')) {
+                // Already handled by template click
+                return;
+            }
+        }
 
         // Fetch last performance
         fetch(`/workouts/exercise/${exerciseId}/last-performance`)

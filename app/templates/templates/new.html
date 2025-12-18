@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}New Template - Workout Tracker{% endblock %}
+
+{% block content %}
+<div class="container">
+    <header class="page-header">
+        <h1>Create Template</h1>
+        <p class="text-secondary">Set up a reusable workout routine</p>
+    </header>
+
+    <form method="POST" class="card">
+        <div class="form-group">
+            <label for="name">Template Name *</label>
+            <input type="text" id="name" name="name" required
+                   placeholder="e.g., Upper Body Day A" maxlength="100">
+        </div>
+
+        <div class="form-group">
+            <label for="workout_type">Workout Type</label>
+            <select id="workout_type" name="workout_type">
+                <option value="upper_body">Upper Body</option>
+                <option value="lower_body">Lower Body</option>
+                <option value="push">Push</option>
+                <option value="pull">Pull</option>
+                <option value="full_body">Full Body</option>
+                <option value="other">Other</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="description">Description (optional)</label>
+            <textarea id="description" name="description" rows="2"
+                      placeholder="e.g., Jeff Nippard's Upper Day focusing on chest and shoulders"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block">
+            Create Template
+        </button>
+    </form>
+
+    <a href="{{ url_for('templates.index') }}" class="btn btn-secondary btn-block">
+        Cancel
+    </a>
+</div>
+{% endblock %}

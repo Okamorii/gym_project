@@ -1,9 +1,9 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, session as flask_session
 from flask_login import login_required, current_user
 from datetime import date
 from sqlalchemy import text
 from app import db
-from app.models import WorkoutSession, StrengthLog, Exercise, PersonalRecord
+from app.models import WorkoutSession, StrengthLog, Exercise, PersonalRecord, WorkoutTemplate
 
 workouts_bp = Blueprint('workouts', __name__)
 
@@ -53,6 +53,7 @@ def new_session():
     if request.method == 'POST':
         session_date = request.form.get('session_date', date.today())
         notes = request.form.get('notes', '')
+        template_id = request.form.get('template_id', type=int)
 
         # Check for existing session today
         existing = WorkoutSession.get_today_session(
@@ -74,11 +75,30 @@ def new_session():
         db.session.add(session)
         db.session.commit()
 
-        flash('Workout session started!', 'success')
+        # If template selected, store it in flask session for pre-loading
+        if template_id:
+            flask_session['active_template_id'] = template_id
+            flash('Workout started with template!', 'success')
+        else:
+            flask_session.pop('active_template_id', None)
+            flash('Workout session started!', 'success')
+
         return redirect(url_for('workouts.log_exercise', session_id=session.session_id))
 
+    # GET request
     exercises = Exercise.get_strength_exercises()
-    return render_template('workouts/new_session.html', exercises=exercises, today=date.today())
+    templates = WorkoutTemplate.get_user_templates(current_user.user_id)
+
+    # Check if template_id passed in URL (from template view page)
+    preselected_template = request.args.get('template', type=int)
+
+    return render_template(
+        'workouts/new_session.html',
+        exercises=exercises,
+        today=date.today(),
+        templates=templates,
+        preselected_template=preselected_template
+    )
 
 
 @workouts_bp.route('/session/<int:session_id>')
@@ -170,13 +190,26 @@ def log_exercise(session_id):
     # Check for volume spikes
     volume_spikes = check_strength_volume_spike(current_user.user_id)
 
+    # Check for active template
+    template_data = None
+    active_template_id = flask_session.get('active_template_id')
+    if active_template_id:
+        template = WorkoutTemplate.query.get(active_template_id)
+        if template and template.user_id == current_user.user_id:
+            template_data = {
+                'id': template.template_id,
+                'name': template.name,
+                'exercises': template.get_exercises_with_last_performance(current_user.user_id)
+            }
+
     return render_template(
         'workouts/log_exercise.html',
         session=session,
         exercises=exercises,
         current_logs=current_logs,
         volume_spikes=volume_spikes,
-        just_logged=just_logged
+        just_logged=just_logged,
+        template_data=template_data
     )
 
 

@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}{{ template.name }} - Workout Tracker{% endblock %}
+
+{% block content %}
+<div class="container">
+    <header class="page-header">
+        <h1>{{ template.name }}</h1>
+        <span class="template-type-badge {{ template.workout_type }}">
+            {{ template.workout_type.replace('_', ' ').title() }}
+        </span>
+    </header>
+
+    {% if template.description %}
+    <p class="template-description text-secondary">{{ template.description }}</p>
+    {% endif %}
+
+    <!-- Quick Actions -->
+    <div class="template-quick-actions">
+        <a href="{{ url_for('workouts.new_session') }}?template={{ template.template_id }}"
+           class="btn btn-success btn-block btn-large">
+            Start Workout with this Template
+        </a>
+    </div>
+
+    <!-- Exercises List -->
+    <section class="card">
+        <h2>Exercises ({{ exercises|length }})</h2>
+
+        {% if exercises %}
+        <ul class="template-exercise-list">
+            {% for ex in exercises %}
+            <li class="template-exercise-item">
+                <div class="exercise-order">{{ loop.index }}</div>
+                <div class="exercise-details">
+                    <div class="exercise-name">{{ ex.exercise_name }}</div>
+                    <div class="exercise-target">
+                        Target: {{ ex.target_sets }} sets x {{ ex.target_reps }} reps
+                    </div>
+                    {% if ex.has_history %}
+                    <div class="exercise-last-performance">
+                        Last: {{ ex.last_sets }}x{{ ex.last_reps }}
+                        {% if ex.last_weight %}@ {{ ex.last_weight }}kg{% endif %}
+                        <span class="last-date">({{ ex.last_date }})</span>
+                    </div>
+                    {% else %}
+                    <div class="exercise-no-history">No previous data</div>
+                    {% endif %}
+                    {% if ex.notes %}
+                    <div class="exercise-notes">{{ ex.notes }}</div>
+                    {% endif %}
+                </div>
+                <div class="exercise-muscle">
+                    <span class="muscle-badge">{{ ex.muscle_group.split(',')[0] }}</span>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-secondary">No exercises added yet.</p>
+        {% endif %}
+    </section>
+
+    <!-- Actions -->
+    <div class="template-actions-grid">
+        <a href="{{ url_for('templates.edit_template', template_id=template.template_id) }}"
+           class="btn btn-secondary">
+            Edit Template
+        </a>
+        <form method="POST" action="{{ url_for('templates.duplicate_template', template_id=template.template_id) }}"
+              style="display: inline;">
+            <button type="submit" class="btn btn-secondary">
+                Duplicate
+            </button>
+        </form>
+    </div>
+
+    <form method="POST" action="{{ url_for('templates.delete_template', template_id=template.template_id) }}"
+          class="delete-form" style="margin-top: 1rem;">
+        <button type="submit" class="btn btn-danger btn-block">
+            Delete Template
+        </button>
+    </form>
+
+    <a href="{{ url_for('templates.index') }}" class="btn btn-link btn-block">
+        Back to Templates
+    </a>
+</div>
+{% endblock %}

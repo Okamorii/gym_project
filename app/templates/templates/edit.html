@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+
+{% block title %}Edit {{ template.name }} - Workout Tracker{% endblock %}
+
+{% block content %}
+<div class="container">
+    <header class="page-header">
+        <h1>Edit Template</h1>
+    </header>
+
+    <!-- Template Details Form -->
+    <form method="POST" class="card">
+        <h2>Template Details</h2>
+        <div class="form-group">
+            <label for="name">Template Name *</label>
+            <input type="text" id="name" name="name" required
+                   value="{{ template.name }}" maxlength="100">
+        </div>
+
+        <div class="form-group">
+            <label for="workout_type">Workout Type</label>
+            <select id="workout_type" name="workout_type">
+                <option value="upper_body" {% if template.workout_type == 'upper_body' %}selected{% endif %}>Upper Body</option>
+                <option value="lower_body" {% if template.workout_type == 'lower_body' %}selected{% endif %}>Lower Body</option>
+                <option value="push" {% if template.workout_type == 'push' %}selected{% endif %}>Push</option>
+                <option value="pull" {% if template.workout_type == 'pull' %}selected{% endif %}>Pull</option>
+                <option value="full_body" {% if template.workout_type == 'full_body' %}selected{% endif %}>Full Body</option>
+                <option value="other" {% if template.workout_type == 'other' %}selected{% endif %}>Other</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" name="description" rows="2">{{ template.description or '' }}</textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block">
+            Save Changes
+        </button>
+    </form>
+
+    <!-- Current Exercises -->
+    <section class="card">
+        <h2>Exercises ({{ template_exercises|length }})</h2>
+
+        {% if template_exercises %}
+        <ul class="template-exercise-list editable" id="exerciseList">
+            {% for te in template_exercises %}
+            <li class="template-exercise-item" data-id="{{ te.template_exercise_id }}">
+                <div class="exercise-drag-handle">&#9776;</div>
+                <div class="exercise-order">{{ loop.index }}</div>
+                <div class="exercise-details">
+                    <div class="exercise-name">{{ te.exercise.name }}</div>
+                    <div class="exercise-target">
+                        {{ te.target_sets }} sets x {{ te.target_reps }} reps
+                    </div>
+                    {% if te.notes %}
+                    <div class="exercise-notes">{{ te.notes }}</div>
+                    {% endif %}
+                </div>
+                <form method="POST"
+                      action="{{ url_for('templates.remove_exercise', template_id=template.template_id, te_id=te.template_exercise_id) }}"
+                      class="exercise-remove-form">
+                    <button type="submit" class="btn-icon btn-delete" title="Remove">
+                        &times;
+                    </button>
+                </form>
+            </li>
+            {% endfor %}
+        </ul>
+        <p class="text-secondary text-sm">Drag to reorder exercises</p>
+        {% else %}
+        <p class="text-secondary">No exercises added yet. Add your first exercise below.</p>
+        {% endif %}
+    </section>
+
+    <!-- Add Exercise Form -->
+    <section class="card">
+        <h2>Add Exercise</h2>
+        <form method="POST" action="{{ url_for('templates.add_exercise', template_id=template.template_id) }}">
+            <div class="form-group">
+                <label for="exercise_id">Exercise *</label>
+                <select id="exercise_id" name="exercise_id" required>
+                    <option value="">Select an exercise...</option>
+                    {% for exercise in all_exercises %}
+                    <option value="{{ exercise.exercise_id }}">
+                        {{ exercise.name }} ({{ exercise.muscle_group.split(',')[0] }})
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="target_sets">Target Sets</label>
+                    <input type="number" id="target_sets" name="target_sets"
+                           value="3" min="1" max="10" inputmode="numeric">
+                </div>
+                <div class="form-group">
+                    <label for="target_reps">Target Reps</label>
+                    <input type="number" id="target_reps" name="target_reps"
+                           value="10" min="1" max="50" inputmode="numeric">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="notes">Notes (optional)</label>
+                <input type="text" id="notes" name="notes"
+                       placeholder="e.g., Warm up with lighter weight">
+            </div>
+
+            <button type="submit" class="btn btn-success btn-block">
+                + Add Exercise
+            </button>
+        </form>
+    </section>
+
+    <div class="template-actions-bottom">
+        <a href="{{ url_for('templates.view_template', template_id=template.template_id) }}"
+           class="btn btn-primary btn-block">
+            Done Editing
+        </a>
+        <a href="{{ url_for('templates.index') }}" class="btn btn-secondary btn-block">
+            Back to Templates
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Simple drag-and-drop reordering
+document.addEventListener('DOMContentLoaded', function() {
+    const list = document.getElementById('exerciseList');
+    if (!list) return;
+
+    let draggedItem = null;
+
+    list.querySelectorAll('.template-exercise-item').forEach(item => {
+        const handle = item.querySelector('.exercise-drag-handle');
+
+        handle.addEventListener('mousedown', function(e) {
+            draggedItem = item;
+            item.classList.add('dragging');
+        });
+
+        item.addEventListener('dragstart', function(e) {
+            draggedItem = this;
+            this.classList.add('dragging');
+        });
+
+        item.addEventListener('dragend', function() {
+            this.classList.remove('dragging');
+            saveOrder();
+        });
+
+        item.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            const afterElement = getDragAfterElement(list, e.clientY);
+            if (afterElement == null) {
+                list.appendChild(draggedItem);
+            } else {
+                list.insertBefore(draggedItem, afterElement);
+            }
+        });
+
+        item.setAttribute('draggable', 'true');
+    });
+
+    function getDragAfterElement(container, y) {
+        const draggableElements = [...container.querySelectorAll('.template-exercise-item:not(.dragging)')];
+        return draggableElements.reduce((closest, child) => {
+            const box = child.getBoundingClientRect();
+            const offset = y - box.top - box.height / 2;
+            if (offset < 0 && offset > closest.offset) {
+                return { offset: offset, element: child };
+            } else {
+                return closest;
+            }
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+
+    function saveOrder() {
+        const items = list.querySelectorAll('.template-exercise-item');
+        const order = Array.from(items).map(item => item.dataset.id);
+
+        fetch('{{ url_for("templates.reorder_exercises", template_id=template.template_id) }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ order: order })
+        }).then(response => {
+            if (response.ok) {
+                // Update order numbers visually
+                items.forEach((item, idx) => {
+                    item.querySelector('.exercise-order').textContent = idx + 1;
+                });
+            }
+        });
+    }
+
+    // Remove form confirmations
+    list.querySelectorAll('.exercise-remove-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            if (!confirm('Remove this exercise from the template?')) {
+                e.preventDefault();
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
