@@ -13,11 +13,11 @@ def login():
         return redirect(url_for('dashboard.index'))
 
     if request.method == 'POST':
-        email = request.form.get('email')
+        username = request.form.get('username')
         password = request.form.get('password')
         remember = request.form.get('remember', False)
 
-        user = User.query.filter_by(email=email).first()
+        user = User.query.filter_by(username=username).first()
 
         if user and user.check_password(password):
             if not user.is_active:
@@ -32,7 +32,7 @@ def login():
                 return redirect(next_page)
             return redirect(url_for('dashboard.index'))
 
-        flash('Invalid email or password.', 'error')
+        flash('Invalid username or password.', 'error')
 
     return render_template('auth/login.html')
 

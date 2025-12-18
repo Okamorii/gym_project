@@ -12,10 +12,14 @@
     <div class="card">
         <div class="exercise-header">
             <span class="exercise-type-badge {{ exercise.exercise_type }} large">{{ exercise.exercise_type }}</span>
-            {% if exercise.muscle_group %}
-            <span class="muscle-group-badge">{{ exercise.muscle_group }}</span>
-            {% endif %}
         </div>
+        {% if exercise.muscle_groups_list %}
+        <div class="muscle-groups-list">
+            {% for mg in exercise.muscle_groups_list %}
+            <span class="muscle-group-badge">{{ mg }}</span>
+            {% endfor %}
+        </div>
+        {% endif %}
 
         {% if exercise.description %}
         <div class="detail-section">

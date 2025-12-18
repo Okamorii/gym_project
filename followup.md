@@ -53,35 +53,54 @@ A Flask-based workout tracking application for monitoring upper body strength tr
   /models
     __init__.py            # Model exports
     user.py                # User model with auth methods
-    exercise.py            # Exercise model with substitutes
+    exercise.py            # Exercise model with substitutes, MUSCLE_GROUPS
     workout.py             # WorkoutSession, StrengthLog, RunningLog
     records.py             # PersonalRecord model
     recovery.py            # RecoveryLog model
+    planning.py            # PlannedWorkout model
   /blueprints
-    /auth                  # Login, register, logout, profile
+    /auth                  # Login (username), register, logout, profile
     /dashboard             # Main dashboard view
-    /workouts              # Strength training logging
+    /workouts              # Strength training logging with PR detection
     /running               # Running session logging
+    /recovery              # Recovery logging
+    /exercises             # Exercise library browser
     /analytics             # Charts and progress visualization
+    /planning              # Weekly workout planning
+    /export                # CSV data export
     /api                   # REST API with JWT authentication
   /templates
-    base.html              # Base template with nav, bottom nav
+    base.html              # Base template with nav, PR celebration modal
     /auth
-      login.html
+      login.html           # Username-based login
       register.html
-      profile.html
+      profile.html         # Includes data export section
     /dashboard
       index.html
     /workouts
       index.html
       new_session.html
-      log_exercise.html
+      log_exercise.html    # With volume spike alerts
+      view_session.html
     /running
       index.html
       new_session.html
       view_session.html
       edit_session.html
       stats.html
+    /recovery
+      index.html
+      log.html
+      view.html
+    /exercises
+      index.html
+      view.html
+      new.html             # Multiple muscle checkbox selection
+      edit.html
+      substitutes.html
+    /planning
+      index.html           # Weekly calendar view
+      add.html
     /analytics
       index.html
       strength.html
@@ -90,7 +109,9 @@ A Flask-based workout tracking application for monitoring upper body strength tr
     /css
       style.css            # Mobile-first responsive CSS
     /js
-      app.js               # Client-side JavaScript
+      app.js               # Validation, PR celebration, mobile nav
+    manifest.json          # PWA manifest
+    sw.js                  # Service worker
 ```
 
 ---
@@ -328,41 +349,57 @@ A Flask-based workout tracking application for monitoring upper body strength tr
 ~~5. **Dashboard Content** - Wire up actual stats, quick actions, PR feed, weekly progress display~~
 ~~6. **Workout Session View/Edit** - Create `view_session.html` for strength workouts~~
 ~~7. **Recovery Logging UI** - Web interface to log daily sleep, energy, soreness, motivation~~
-8. **PR Detection & Celebration** - Show PR notifications/badges when beating records during logging
+~~8. **PR Detection & Celebration** - Show PR notifications/badges when beating records during logging~~
 
-### ~~Phase 3: Alerts & UX Improvements~~ ✅ MOSTLY COMPLETED
-9. **Volume Spike Alerts** - Display warnings prominently when running >10% or lifting >20% volume increase
-10. **Mobile Nav Toggle** - Implement hamburger menu functionality in app.js
+### ~~Phase 3: Alerts & UX Improvements~~ ✅ COMPLETED
+~~9. **Volume Spike Alerts** - Display warnings prominently when running >10% or lifting >20% volume increase~~
+~~10. **Mobile Nav Toggle** - Implement hamburger menu functionality in app.js~~
 ~~11. **PWA Setup** - Create manifest.json and service worker for offline capability and home screen install~~
 
-### Phase 4: Planning & Data Management
-12. **Weekly Planning** - Template and plan upcoming workouts
-13. **Data Export** - CSV export for backup
-14. **Error Validation UI** - Client-side validation, unusual entry warnings (e.g., 400kg bench press)
+### ~~Phase 4: Planning & Data Management~~ ✅ COMPLETED
+~~12. **Weekly Planning** - Template and plan upcoming workouts~~
+~~13. **Data Export** - CSV export for backup~~
+~~14. **Error Validation UI** - Client-side validation, unusual entry warnings (e.g., 400kg bench press)~~
 ~~15. **Chart Improvements** - More interactive charts, date range filters~~
 
-### Phase 5: Production Deployment
-16. **Systemd Service** - Create service file to run Flask app permanently in background
-17. **Gunicorn Setup** - Production WSGI server instead of Flask dev server
-18. **Nginx Reverse Proxy** - (Optional) For SSL and better performance
-
-### ~~Phase 6: Docker Containerization~~ ✅ COMPLETED
-~~19. **Dockerfile** - Create Docker image for the Flask app~~
-~~20. **docker-compose.yml** - Orchestrate Flask + PostgreSQL containers~~
-~~21. **Docker Volumes** - Persist database data and uploads~~
-~~22. **Environment Variables** - Move secrets to `.env` file for Docker~~
-~~23. **Docker Documentation** - Update README with Docker commands~~
+### ~~Phase 5: Docker Containerization~~ ✅ COMPLETED
+~~16. **Dockerfile** - Create Docker image for the Flask app~~
+~~17. **docker-compose.yml** - Orchestrate Flask + PostgreSQL containers~~
+~~18. **Docker Volumes** - Persist database data and uploads~~
+~~19. **Environment Variables** - Move secrets to `.env` file for Docker~~
+~~20. **Docker Documentation** - Update README with Docker commands~~
 
 ---
 
 ## Remaining Tasks (Priority Order)
 
-1. **PR Detection & Celebration** - Show PR badges/notifications during workout logging
-2. **Volume Spike Alerts UI** - More prominent display of volume spike warnings
-3. **Mobile Nav Toggle** - Hamburger menu JavaScript functionality
-4. **Weekly Planning** - Plan upcoming workouts feature
-5. **Data Export** - CSV export for backup
-6. **Error Validation UI** - Client-side validation for unusual entries
+**All core tasks completed!** The application is fully functional with Docker deployment.
+
+---
+
+## Future Enhancements (Phase 6)
+
+### High Priority
+21. **Workout Templates** - Save and reuse workout structures (e.g., "Upper Body Day A" with pre-filled exercises, sets, reps)
+22. **Goal Setting** - Set targets (e.g., "Bench 100kg", "Run 5K in 25min") with progress tracking and visual indicators
+~~23. **Rest Timer** - Built-in countdown timer between sets with manual override option~~ ✅ COMPLETED
+
+### Medium Priority
+24. **Body Measurements** - Track weight, body fat %, chest, arms, waist measurements over time
+25. **Workout Consistency Calendar** - GitHub-style heatmap showing workout days
+26. **Fatigue/Readiness Score** - Combine recovery metrics (sleep, soreness, energy) into single daily score
+27. **Photo Progress** - Upload progress photos linked to dates
+28. **Running Pace Zones** - Show time spent in each heart rate/pace zone
+
+### Low Priority
+29. **Dark/Light Theme Toggle** - User preference for theme switching
+30. **Password Reset** - Email-based password recovery flow
+31. **Weekly Summary Email** - Automated weekly recap of workouts, PRs, and stats
+32. **Comparison Analytics** - "This month vs last month" side-by-side comparison view
+
+### Quick Fixes
+- **Fix Docker healthcheck** - Container shows "unhealthy" despite working
+- **Add favicon** - Missing favicon causes 404 errors in browser
 
 ---
 
@@ -382,88 +419,101 @@ A Flask-based workout tracking application for monitoring upper body strength tr
 | PWA (Installable App) | ✅ Complete |
 | Docker Deployment | ✅ Complete |
 | REST API (JWT) | ✅ Complete |
-| PR Detection UI | Pending |
-| Volume Spike Alerts | Partial |
-| Mobile Nav Toggle | Pending |
-| Weekly Planning | Pending |
-| Data Export | Pending |
+| Multiple Muscle Groups | ✅ Complete |
+| PR Detection UI | ✅ Complete |
+| Volume Spike Alerts | ✅ Complete |
+| Mobile Nav Toggle | ✅ Complete |
+| Weekly Planning | ✅ Complete |
+| Data Export | ✅ Complete |
+| Input Validation | ✅ Complete |
 
-**Overall: ~90% Complete**
+**Overall: 100% Complete** (Core Features)
+
+---
+
+### 7. Features Completed (December 17, 2025 - Session 2)
+
+#### 7.1 Multiple Muscle Groups per Exercise
+- Updated `exercise.py` model with `MUSCLE_GROUPS` constant and helper properties
+- Changed `muscle_group` column to VARCHAR(200) to store comma-separated values
+- Created checkbox-based UI for selecting multiple muscles per exercise
+- Seeded existing exercises with appropriate multiple muscle groups
+- Templates updated: `exercises/new.html`, `exercises/edit.html`, `exercises/view.html`
+
+#### 7.2 Login Changed to Username
+- Modified auth blueprint to use username instead of email for login
+- Updated `login.html` template
+- Updated API login endpoint
+
+#### 7.3 PR Detection & Celebration Modal
+- Added PR celebration modal to `base.html` with confetti animation
+- Added `showPrCelebration()`, `closePrModal()`, `createConfetti()` functions to `app.js`
+- Modified workouts blueprint to capture previous PR value and trigger celebration
+- Added `is_pr` property to StrengthLog model
+- PR badges now display in workout log views
+
+#### 7.4 Volume Spike Alerts UI
+- Enhanced dashboard template with improved alert display
+- Added volume spike banner to `log_exercise.html`
+- Added `check_strength_volume_spike()` function to workouts blueprint
+- CSS styling for alerts with dismiss functionality
+
+#### 7.5 Mobile Navigation Toggle
+- Implemented hamburger menu with JavaScript in `app.js`
+- Compact dropdown menu (right-aligned, not full-page)
+- Hamburger-to-X animation on toggle
+- Click-outside-to-close functionality
+
+#### 7.6 Weekly Planning Feature
+**New Model:** `app/models/planning.py`
+- `PlannedWorkout` model with user_id, planned_date, workout_type, description, completed
+
+**New Blueprint:** `app/blueprints/planning/__init__.py`
+- `GET /planning/` - Weekly calendar view
+- `GET/POST /planning/add` - Add planned workout
+- `POST /planning/<id>/toggle` - Toggle completed status
+- `POST /planning/<id>/delete` - Delete planned workout
+
+**Templates:**
+- `planning/index.html` - Week calendar with workout indicators
+- `planning/add.html` - Form with date, type, description
+
+**Features:**
+- Navigate between weeks
+- Quick templates (Nippard Upper, Running Focus, Balanced)
+- Click dates to log completed workouts
+
+#### 7.7 Data Export (CSV)
+**New Blueprint:** `app/blueprints/export/__init__.py`
+- `GET /export/strength` - Export strength training data
+- `GET /export/running` - Export running data
+- `GET /export/recovery` - Export recovery logs
+- `GET /export/prs` - Export personal records
+- `GET /export/all` - Export all data combined
+
+**Profile Integration:**
+- Added export section to `auth/profile.html`
+- Buttons for individual and combined exports
+
+#### 7.8 Input Validation UI
+**JavaScript Validation System (`app.js`):**
+- `validationRules` object with limits for strength, running, recovery inputs
+- Hard limits (block submit) and soft warnings (confirm dialog)
+- Visual feedback with `.input-error` and `.input-warning` classes
+- `validateInput()`, `showInputError()`, `showInputWarning()`, `clearInputFeedback()`
+- `setupFormValidation()` auto-initializes on page load
+
+**Validation Limits:**
+- Weight: 0-500kg (warning >300kg)
+- Sets: 1-20 (warning >10)
+- Reps: 1-100 (warning >30)
+- RPE: 1-10
+- Distance: 0-100km (warning >50km)
+- Heart Rate: 40-220 (warning <60 or >200)
 
 ---
 
 ## How to Run
-
-### Development (Terminal - stops when terminal closes)
-```bash
-# Connect to database
-sudo -u postgres psql -d workout_tracker
-
-# Run schema setup
-sudo -u postgres psql -d workout_tracker -f /root/gym/setup_database.sql
-
-# Run Flask app
-cd /root/gym
-python run.py
-```
-
-### Production (Always Running - survives reboots)
-
-**Step 1: Install Gunicorn**
-```bash
-pip install gunicorn
-```
-
-**Step 2: Create systemd service file**
-```bash
-sudo nano /etc/systemd/system/workout-tracker.service
-```
-
-Add this content:
-```ini
-[Unit]
-Description=Workout Tracker Flask App
-After=network.target postgresql.service
-
-[Service]
-User=root
-WorkingDirectory=/root/gym
-ExecStart=/usr/local/bin/gunicorn --workers 2 --bind 0.0.0.0:5000 "app:create_app()"
-Restart=always
-RestartSec=5
-
-[Install]
-WantedBy=multi-user.target
-```
-
-**Step 3: Enable and start the service**
-```bash
-# Reload systemd to recognize new service
-sudo systemctl daemon-reload
-
-# Enable service to start on boot
-sudo systemctl enable workout-tracker
-
-# Start the service now
-sudo systemctl start workout-tracker
-
-# Check status
-sudo systemctl status workout-tracker
-```
-
-**Useful commands:**
-```bash
-# View logs
-sudo journalctl -u workout-tracker -f
-
-# Restart after code changes
-sudo systemctl restart workout-tracker
-
-# Stop the service
-sudo systemctl stop workout-tracker
-```
-
-**App URL:** http://192.168.0.117:5000
 
 ### Docker Deployment (Recommended)
 

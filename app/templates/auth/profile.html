@@ -67,5 +67,30 @@
         </div>
         {% endif %}
     </div>
+
+    <!-- Data Export -->
+    <div class="card">
+        <h2>Export Data</h2>
+        <p class="export-description">Download your workout data as CSV files for backup or analysis.</p>
+        <div class="export-buttons">
+            <a href="{{ url_for('export.export_all') }}" class="btn btn-primary">
+                Export All Data
+            </a>
+        </div>
+        <div class="export-buttons-secondary">
+            <a href="{{ url_for('export.export_strength') }}" class="btn btn-secondary btn-sm">
+                Strength Only
+            </a>
+            <a href="{{ url_for('export.export_running') }}" class="btn btn-secondary btn-sm">
+                Running Only
+            </a>
+            <a href="{{ url_for('export.export_recovery') }}" class="btn btn-secondary btn-sm">
+                Recovery Only
+            </a>
+            <a href="{{ url_for('export.export_prs') }}" class="btn btn-secondary btn-sm">
+                PRs Only
+            </a>
+        </div>
+    </div>
 </div>
 {% endblock %}

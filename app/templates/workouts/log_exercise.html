@@ -9,6 +9,23 @@
         <p class="session-date">{{ session.session_date }}</p>
     </header>
 
+    <!-- Volume Spike Alerts -->
+    {% if volume_spikes %}
+    <div class="volume-spike-banner">
+        <span class="spike-icon">&#9888;</span>
+        <div class="spike-content">
+            <div class="spike-title">Volume Spike Detected</div>
+            <div class="spike-message">
+                {% for spike in volume_spikes %}
+                {{ spike.muscle_group }}: +{{ spike.increase_percent|round(1) }}% increase
+                {% if not loop.last %}<br>{% endif %}
+                {% endfor %}
+            </div>
+            <p class="spike-tip">Consider reducing volume to prevent overtraining.</p>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Current Logs -->
     {% if current_logs %}
     <section class="card logged-exercises">
@@ -21,6 +38,7 @@
                     <span class="log-details">{{ log.sets }}x{{ log.reps }} @ {{ log.weight_kg }}kg</span>
                     {% if log.rpe %}<span class="log-rpe">RPE {{ log.rpe }}</span>{% endif %}
                     <span class="log-1rm">Est. 1RM: {{ log.estimated_1rm }}kg</span>
+                    {% if log.is_pr %}<span class="pr-badge">PR!</span>{% endif %}
                 </div>
                 <form method="POST" action="{{ url_for('workouts.delete_log', log_id=log.log_id) }}" class="delete-form">
                     <button type="submit" class="btn-icon btn-delete" title="Delete">&times;</button>
@@ -90,10 +108,34 @@
                 </div>
             </div>
 
-            <div class="form-group">
-                <label for="rest_seconds">Rest (seconds)</label>
-                <input type="number" id="rest_seconds" name="rest_seconds"
-                       min="0" max="600" inputmode="numeric">
+            <!-- Rest Timer Section -->
+            <div class="form-group rest-timer-group">
+                <label>Rest Timer</label>
+                <div class="rest-timer-container" id="restTimerContainer">
+                    <div class="timer-display" id="timerDisplay">1:30</div>
+                    <div class="timer-controls">
+                        <button type="button" class="btn btn-timer" id="timerStart" title="Start">
+                            <span class="timer-icon">&#9658;</span>
+                        </button>
+                        <button type="button" class="btn btn-timer btn-stop" id="timerStop" style="display: none;" title="Stop">
+                            <span class="timer-icon">&#9632;</span>
+                        </button>
+                        <button type="button" class="btn btn-timer-small" id="timerReset" title="Reset">
+                            &#8635;
+                        </button>
+                    </div>
+                    <div class="timer-presets">
+                        <button type="button" class="timer-preset" data-seconds="60">1:00</button>
+                        <button type="button" class="timer-preset" data-seconds="90">1:30</button>
+                        <button type="button" class="timer-preset" data-seconds="120">2:00</button>
+                        <button type="button" class="timer-preset" data-seconds="180">3:00</button>
+                    </div>
+                </div>
+                <div class="rest-manual">
+                    <label for="rest_seconds">Or enter manually (seconds)</label>
+                    <input type="number" id="rest_seconds" name="rest_seconds"
+                           min="0" max="600" inputmode="numeric" placeholder="Optional">
+                </div>
             </div>
 
             <button type="submit" class="btn btn-primary btn-block btn-large">
@@ -127,6 +169,13 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const exerciseSelect = document.getElementById('exercise_id');
+
+    // Auto-start timer if a set was just logged (check for success flash)
+    {% if just_logged %}
+    if (typeof restTimer !== 'undefined') {
+        restTimer.autoStart();
+    }
+    {% endif %}
     const substituteSection = document.getElementById('substituteSection');
     const showSubstitutesBtn = document.getElementById('showSubstitutes');
     const substituteList = document.getElementById('substituteList');

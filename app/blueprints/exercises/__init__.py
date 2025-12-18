@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
 from app import db
-from app.models import Exercise, ExerciseSubstitution, StrengthLog
+from app.models import Exercise, ExerciseSubstitution, StrengthLog, MUSCLE_GROUPS
 
 exercises_bp = Blueprint('exercises', __name__)
 
@@ -19,7 +19,8 @@ def index():
     query = Exercise.query
 
     if muscle_group:
-        query = query.filter(Exercise.muscle_group == muscle_group)
+        # Filter by muscle group (searches within comma-separated list)
+        query = query.filter(Exercise.muscle_group.ilike(f'%{muscle_group}%'))
     if exercise_type:
         query = query.filter(Exercise.exercise_type == exercise_type)
     if search:
@@ -27,14 +28,10 @@ def index():
 
     exercises = query.order_by(Exercise.muscle_group, Exercise.name).all()
 
-    # Get unique muscle groups for filter
-    muscle_groups = db.session.query(Exercise.muscle_group).distinct().order_by(Exercise.muscle_group).all()
-    muscle_groups = [m[0] for m in muscle_groups if m[0]]
-
     return render_template(
         'exercises/index.html',
         exercises=exercises,
-        muscle_groups=muscle_groups,
+        muscle_groups=MUSCLE_GROUPS,
         current_muscle_group=muscle_group,
         current_type=exercise_type,
         current_search=search
@@ -75,38 +72,35 @@ def new():
     if request.method == 'POST':
         name = request.form.get('name', '').strip()
         description = request.form.get('description', '').strip()
-        muscle_group = request.form.get('muscle_group', '').strip()
+        # Get multiple muscle groups from checkboxes
+        selected_muscles = request.form.getlist('muscle_groups')
         exercise_type = request.form.get('exercise_type', 'strength')
         video_url = request.form.get('video_reference_url', '').strip()
 
         if not name:
             flash('Exercise name is required.', 'error')
-            return render_template('exercises/new.html')
+            return render_template('exercises/new.html', muscle_groups=MUSCLE_GROUPS)
 
         # Check for duplicate
         existing = Exercise.query.filter(Exercise.name.ilike(name)).first()
         if existing:
             flash('An exercise with this name already exists.', 'error')
-            return render_template('exercises/new.html')
+            return render_template('exercises/new.html', muscle_groups=MUSCLE_GROUPS)
 
         exercise = Exercise(
             name=name,
             description=description or None,
-            muscle_group=muscle_group or None,
             exercise_type=exercise_type,
             video_reference_url=video_url or None
         )
+        exercise.muscle_groups_list = selected_muscles
         db.session.add(exercise)
         db.session.commit()
 
         flash(f'Exercise "{name}" created!', 'success')
         return redirect(url_for('exercises.view', exercise_id=exercise.exercise_id))
 
-    # Get existing muscle groups for suggestions
-    muscle_groups = db.session.query(Exercise.muscle_group).distinct().order_by(Exercise.muscle_group).all()
-    muscle_groups = [m[0] for m in muscle_groups if m[0]]
-
-    return render_template('exercises/new.html', muscle_groups=muscle_groups)
+    return render_template('exercises/new.html', muscle_groups=MUSCLE_GROUPS)
 
 
 @exercises_bp.route('/<int:exercise_id>/edit', methods=['GET', 'POST'])
@@ -118,13 +112,14 @@ def edit(exercise_id):
     if request.method == 'POST':
         name = request.form.get('name', '').strip()
         description = request.form.get('description', '').strip()
-        muscle_group = request.form.get('muscle_group', '').strip()
+        # Get multiple muscle groups from checkboxes
+        selected_muscles = request.form.getlist('muscle_groups')
         exercise_type = request.form.get('exercise_type', 'strength')
         video_url = request.form.get('video_reference_url', '').strip()
 
         if not name:
             flash('Exercise name is required.', 'error')
-            return render_template('exercises/edit.html', exercise=exercise)
+            return render_template('exercises/edit.html', exercise=exercise, muscle_groups=MUSCLE_GROUPS)
 
         # Check for duplicate (excluding current)
         existing = Exercise.query.filter(
@@ -133,11 +128,11 @@ def edit(exercise_id):
         ).first()
         if existing:
             flash('An exercise with this name already exists.', 'error')
-            return render_template('exercises/edit.html', exercise=exercise)
+            return render_template('exercises/edit.html', exercise=exercise, muscle_groups=MUSCLE_GROUPS)
 
         exercise.name = name
         exercise.description = description or None
-        exercise.muscle_group = muscle_group or None
+        exercise.muscle_groups_list = selected_muscles
         exercise.exercise_type = exercise_type
         exercise.video_reference_url = video_url or None
         db.session.commit()
@@ -145,10 +140,7 @@ def edit(exercise_id):
         flash('Exercise updated!', 'success')
         return redirect(url_for('exercises.view', exercise_id=exercise_id))
 
-    muscle_groups = db.session.query(Exercise.muscle_group).distinct().order_by(Exercise.muscle_group).all()
-    muscle_groups = [m[0] for m in muscle_groups if m[0]]
-
-    return render_template('exercises/edit.html', exercise=exercise, muscle_groups=muscle_groups)
+    return render_template('exercises/edit.html', exercise=exercise, muscle_groups=MUSCLE_GROUPS)
 
 
 @exercises_bp.route('/<int:exercise_id>/substitutes', methods=['GET', 'POST'])

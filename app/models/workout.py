@@ -86,6 +86,21 @@ class StrengthLog(db.Model):
             return float(self.weight_kg)
         return round(float(self.weight_kg) * (1 + self.reps / 30), 2)
 
+    @property
+    def is_pr(self):
+        """Check if this log was a PR at the time it was logged."""
+        from app.models import PersonalRecord
+        pr = PersonalRecord.query.filter_by(
+            user_id=self.session.user_id,
+            exercise_id=self.exercise_id,
+            record_type='1RM'
+        ).order_by(PersonalRecord.date_achieved.desc()).first()
+
+        if pr and pr.date_achieved == self.session.session_date:
+            # Check if this log's 1RM matches the PR value
+            return abs(float(pr.value) - self.estimated_1rm) < 0.1
+        return False
+
     @classmethod
     def get_last_performance(cls, user_id, exercise_id):
         """Get user's last performance for an exercise."""

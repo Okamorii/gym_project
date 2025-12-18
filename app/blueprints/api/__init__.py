@@ -25,13 +25,13 @@ def api_login():
     if not data:
         return jsonify({'error': 'No data provided'}), 400
 
-    email = data.get('email')
+    username = data.get('username')
     password = data.get('password')
 
-    if not email or not password:
-        return jsonify({'error': 'Email and password required'}), 400
+    if not username or not password:
+        return jsonify({'error': 'Username and password required'}), 400
 
-    user = User.query.filter_by(email=email).first()
+    user = User.query.filter_by(username=username).first()
 
     if not user or not user.check_password(password):
         return jsonify({'error': 'Invalid credentials'}), 401

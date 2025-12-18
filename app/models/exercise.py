@@ -2,6 +2,23 @@ from datetime import datetime
 from app import db
 
 
+# Standard muscle groups for consistency
+MUSCLE_GROUPS = [
+    'Chest',
+    'Back',
+    'Shoulders',
+    'Biceps',
+    'Triceps',
+    'Forearms',
+    'Core',
+    'Quadriceps',
+    'Hamstrings',
+    'Glutes',
+    'Calves',
+    'Cardio'
+]
+
+
 class Exercise(db.Model):
     """Exercise library model."""
     __tablename__ = 'exercises'
@@ -9,7 +26,7 @@ class Exercise(db.Model):
     exercise_id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text)
-    muscle_group = db.Column(db.String(50))
+    muscle_group = db.Column(db.String(200))  # Comma-separated for multiple groups
     exercise_type = db.Column(db.String(20))  # 'strength' or 'cardio'
     video_reference_url = db.Column(db.String(255))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -44,10 +61,35 @@ class Exercise(db.Model):
             return 0
         return round(weight * (1 + reps / 30), 2)
 
+    @property
+    def muscle_groups_list(self):
+        """Get muscle groups as a list."""
+        if not self.muscle_group:
+            return []
+        return [mg.strip() for mg in self.muscle_group.split(',') if mg.strip()]
+
+    @muscle_groups_list.setter
+    def muscle_groups_list(self, groups):
+        """Set muscle groups from a list."""
+        if groups:
+            self.muscle_group = ', '.join(groups)
+        else:
+            self.muscle_group = None
+
+    @property
+    def primary_muscle_group(self):
+        """Get the first/primary muscle group for backward compatibility."""
+        groups = self.muscle_groups_list
+        return groups[0] if groups else None
+
+    def has_muscle_group(self, muscle_group):
+        """Check if exercise targets a specific muscle group."""
+        return muscle_group in self.muscle_groups_list
+
     @classmethod
     def get_by_muscle_group(cls, muscle_group):
-        """Get all exercises for a muscle group."""
-        return cls.query.filter_by(muscle_group=muscle_group).all()
+        """Get all exercises for a muscle group (searches within comma-separated list)."""
+        return cls.query.filter(cls.muscle_group.ilike(f'%{muscle_group}%')).all()
 
     @classmethod
     def get_strength_exercises(cls):

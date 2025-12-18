@@ -23,8 +23,26 @@ document.addEventListener('DOMContentLoaded', function() {
     const navMenu = document.querySelector('.nav-menu');
 
     if (navToggle && navMenu) {
-        navToggle.addEventListener('click', () => {
+        navToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
             navMenu.classList.toggle('active');
+            navToggle.classList.toggle('active');
+        });
+
+        // Close menu when clicking a link
+        navMenu.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                navMenu.classList.remove('active');
+                navToggle.classList.remove('active');
+            });
+        });
+
+        // Close menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!navMenu.contains(e.target) && !navToggle.contains(e.target)) {
+                navMenu.classList.remove('active');
+                navToggle.classList.remove('active');
+            }
         });
     }
 
@@ -247,3 +265,455 @@ if ('serviceWorker' in navigator) {
             .catch(err => console.log('SW registration failed'));
     });
 }
+
+// ============================================
+// PR Celebration Functions
+// ============================================
+
+function showPrCelebration(exerciseName, newValue, previousValue) {
+    const modal = document.getElementById('prModal');
+    const exerciseEl = document.getElementById('prExercise');
+    const oldValueEl = document.getElementById('prOldValue');
+    const newValueEl = document.getElementById('prNewValue');
+    const improvementEl = document.getElementById('prImprovement');
+    const oldContainer = document.getElementById('prOld');
+
+    if (!modal) return;
+
+    exerciseEl.textContent = exerciseName;
+    newValueEl.textContent = newValue;
+
+    if (previousValue && previousValue > 0) {
+        oldValueEl.textContent = previousValue;
+        oldContainer.style.display = 'flex';
+        const improvement = (newValue - previousValue).toFixed(1);
+        improvementEl.textContent = `+${improvement}kg improvement!`;
+    } else {
+        oldContainer.style.display = 'none';
+        improvementEl.textContent = 'First PR recorded!';
+    }
+
+    modal.style.display = 'flex';
+
+    // Create confetti effect
+    createConfetti();
+
+    // Vibrate if supported (mobile)
+    if (navigator.vibrate) {
+        navigator.vibrate([100, 50, 100, 50, 200]);
+    }
+}
+
+function closePrModal() {
+    const modal = document.getElementById('prModal');
+    if (modal) {
+        modal.style.display = 'none';
+        // Clear confetti
+        const confettiContainer = document.querySelector('.pr-confetti');
+        if (confettiContainer) {
+            confettiContainer.innerHTML = '';
+        }
+    }
+}
+
+function createConfetti() {
+    const confettiContainer = document.querySelector('.pr-confetti');
+    if (!confettiContainer) return;
+
+    confettiContainer.innerHTML = '';
+
+    const colors = ['#ffd700', '#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ff9ff3'];
+
+    for (let i = 0; i < 50; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti-piece';
+        confetti.style.left = Math.random() * 100 + '%';
+        confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+        confetti.style.animationDelay = Math.random() * 2 + 's';
+        confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+        confetti.style.width = (Math.random() * 8 + 5) + 'px';
+        confetti.style.height = (Math.random() * 8 + 5) + 'px';
+        confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+        confettiContainer.appendChild(confetti);
+    }
+}
+
+// Close modal when clicking outside
+document.addEventListener('click', function(e) {
+    const modal = document.getElementById('prModal');
+    if (e.target === modal) {
+        closePrModal();
+    }
+});
+
+// Close modal on escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closePrModal();
+    }
+});
+
+// ============================================
+// Volume Spike Alert Functions
+// ============================================
+
+function dismissAlert(button) {
+    const alert = button.closest('.alert');
+    if (alert) {
+        alert.style.opacity = '0';
+        alert.style.transform = 'translateX(-20px)';
+        setTimeout(() => alert.remove(), 300);
+    }
+}
+
+// ============================================
+// Input Validation Functions
+// ============================================
+
+const validationRules = {
+    strength: {
+        weight_kg: { min: 0, max: 500, warningMax: 300, label: 'Weight' },
+        sets: { min: 1, max: 20, warningMax: 10, label: 'Sets' },
+        reps: { min: 1, max: 100, warningMax: 30, label: 'Reps' },
+        rpe: { min: 1, max: 10, label: 'RPE' },
+        rest_seconds: { min: 0, max: 600, warningMax: 300, label: 'Rest time' }
+    },
+    running: {
+        distance_km: { min: 0, max: 100, warningMax: 50, label: 'Distance' },
+        duration_minutes: { min: 1, max: 600, warningMax: 300, label: 'Duration' },
+        avg_heart_rate: { min: 40, max: 220, warningMin: 60, warningMax: 200, label: 'Avg HR' },
+        max_heart_rate: { min: 40, max: 250, warningMin: 80, warningMax: 210, label: 'Max HR' },
+        elevation_gain_meters: { min: 0, max: 5000, warningMax: 2000, label: 'Elevation' }
+    },
+    recovery: {
+        sleep_quality: { min: 1, max: 10, label: 'Sleep quality' },
+        energy_level: { min: 1, max: 10, label: 'Energy level' },
+        muscle_soreness: { min: 1, max: 10, label: 'Soreness' },
+        motivation_score: { min: 1, max: 10, label: 'Motivation' },
+        sleep_hours: { min: 0, max: 24, warningMin: 4, warningMax: 12, label: 'Sleep hours' }
+    }
+};
+
+function validateInput(input, rules) {
+    const value = parseFloat(input.value);
+    const rule = rules[input.name];
+
+    if (!rule || isNaN(value)) return { valid: true };
+
+    // Check hard limits
+    if (value < rule.min) {
+        return {
+            valid: false,
+            error: `${rule.label} cannot be less than ${rule.min}`
+        };
+    }
+    if (value > rule.max) {
+        return {
+            valid: false,
+            error: `${rule.label} cannot be more than ${rule.max}`
+        };
+    }
+
+    // Check soft warnings
+    if (rule.warningMin && value < rule.warningMin) {
+        return {
+            valid: true,
+            warning: `${rule.label} of ${value} seems unusually low. Are you sure?`
+        };
+    }
+    if (rule.warningMax && value > rule.warningMax) {
+        return {
+            valid: true,
+            warning: `${rule.label} of ${value} seems unusually high. Are you sure?`
+        };
+    }
+
+    return { valid: true };
+}
+
+function showInputError(input, message) {
+    clearInputFeedback(input);
+    input.classList.add('input-error');
+
+    const feedback = document.createElement('div');
+    feedback.className = 'input-feedback error';
+    feedback.textContent = message;
+    input.parentNode.appendChild(feedback);
+}
+
+function showInputWarning(input, message) {
+    clearInputFeedback(input);
+    input.classList.add('input-warning');
+
+    const feedback = document.createElement('div');
+    feedback.className = 'input-feedback warning';
+    feedback.textContent = message;
+    input.parentNode.appendChild(feedback);
+}
+
+function clearInputFeedback(input) {
+    input.classList.remove('input-error', 'input-warning');
+    const existing = input.parentNode.querySelector('.input-feedback');
+    if (existing) existing.remove();
+}
+
+function setupFormValidation(form, ruleSet) {
+    const rules = validationRules[ruleSet];
+    if (!rules) return;
+
+    // Validate on blur
+    form.querySelectorAll('input[type="number"]').forEach(input => {
+        input.addEventListener('blur', function() {
+            const result = validateInput(this, rules);
+            if (!result.valid) {
+                showInputError(this, result.error);
+            } else if (result.warning) {
+                showInputWarning(this, result.warning);
+            } else {
+                clearInputFeedback(this);
+            }
+        });
+
+        // Clear on focus
+        input.addEventListener('focus', function() {
+            clearInputFeedback(this);
+        });
+    });
+
+    // Validate on submit
+    form.addEventListener('submit', function(e) {
+        let hasError = false;
+        let warnings = [];
+
+        form.querySelectorAll('input[type="number"]').forEach(input => {
+            const result = validateInput(input, rules);
+            if (!result.valid) {
+                showInputError(input, result.error);
+                hasError = true;
+            } else if (result.warning) {
+                warnings.push(result.warning);
+            }
+        });
+
+        if (hasError) {
+            e.preventDefault();
+            return false;
+        }
+
+        if (warnings.length > 0) {
+            const confirmMsg = 'Please review:\n\n' + warnings.join('\n') + '\n\nContinue anyway?';
+            if (!confirm(confirmMsg)) {
+                e.preventDefault();
+                return false;
+            }
+        }
+    });
+}
+
+// Auto-initialize validation on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Strength workout form
+    const exerciseForm = document.getElementById('exerciseForm');
+    if (exerciseForm) {
+        setupFormValidation(exerciseForm, 'strength');
+    }
+
+    // Running form
+    const runningForm = document.querySelector('form[action*="/running/"]');
+    if (runningForm) {
+        setupFormValidation(runningForm, 'running');
+    }
+
+    // Recovery form
+    const recoveryForm = document.querySelector('form[action*="/recovery/"]');
+    if (recoveryForm) {
+        setupFormValidation(recoveryForm, 'recovery');
+    }
+});
+
+// ============================================
+// Rest Timer Functions
+// ============================================
+
+const restTimer = {
+    seconds: 0,
+    interval: null,
+    isRunning: false,
+    defaultDuration: 90, // Default rest time in seconds
+
+    init() {
+        const timerContainer = document.getElementById('restTimerContainer');
+        if (!timerContainer) return;
+
+        this.display = document.getElementById('timerDisplay');
+        this.startBtn = document.getElementById('timerStart');
+        this.stopBtn = document.getElementById('timerStop');
+        this.resetBtn = document.getElementById('timerReset');
+        this.restInput = document.getElementById('rest_seconds');
+        this.presetBtns = document.querySelectorAll('.timer-preset');
+
+        // Event listeners
+        this.startBtn?.addEventListener('click', () => this.start());
+        this.stopBtn?.addEventListener('click', () => this.stop());
+        this.resetBtn?.addEventListener('click', () => this.reset());
+
+        // Preset buttons
+        this.presetBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const duration = parseInt(btn.dataset.seconds);
+                this.setDuration(duration);
+                this.start();
+            });
+        });
+
+        // Load saved default from localStorage
+        const savedDefault = localStorage.getItem('restTimerDefault');
+        if (savedDefault) {
+            this.defaultDuration = parseInt(savedDefault);
+        }
+
+        this.updateDisplay();
+    },
+
+    setDuration(seconds) {
+        this.seconds = seconds;
+        this.updateDisplay();
+    },
+
+    start() {
+        if (this.isRunning) return;
+
+        // If timer is at 0, use default duration (count down mode)
+        if (this.seconds === 0) {
+            this.seconds = this.defaultDuration;
+        }
+
+        this.isRunning = true;
+        this.startBtn.style.display = 'none';
+        this.stopBtn.style.display = 'inline-flex';
+
+        // Add running class for visual feedback
+        document.getElementById('restTimerContainer')?.classList.add('timer-running');
+
+        this.interval = setInterval(() => {
+            this.seconds--;
+            this.updateDisplay();
+
+            if (this.seconds <= 0) {
+                this.timerComplete();
+            }
+        }, 1000);
+    },
+
+    stop() {
+        if (!this.isRunning) return;
+
+        clearInterval(this.interval);
+        this.isRunning = false;
+        this.startBtn.style.display = 'inline-flex';
+        this.stopBtn.style.display = 'none';
+
+        document.getElementById('restTimerContainer')?.classList.remove('timer-running');
+
+        // Calculate elapsed time and fill rest input
+        const elapsed = this.defaultDuration - this.seconds;
+        if (elapsed > 0 && this.restInput) {
+            this.restInput.value = elapsed;
+        }
+    },
+
+    reset() {
+        this.stop();
+        this.seconds = this.defaultDuration;
+        this.updateDisplay();
+    },
+
+    timerComplete() {
+        this.stop();
+        this.seconds = 0;
+        this.updateDisplay();
+
+        // Fill rest input with full duration
+        if (this.restInput) {
+            this.restInput.value = this.defaultDuration;
+        }
+
+        // Visual and audio feedback
+        document.getElementById('restTimerContainer')?.classList.add('timer-complete');
+        setTimeout(() => {
+            document.getElementById('restTimerContainer')?.classList.remove('timer-complete');
+        }, 2000);
+
+        // Play sound if available
+        this.playAlertSound();
+
+        // Vibrate on mobile
+        if (navigator.vibrate) {
+            navigator.vibrate([200, 100, 200]);
+        }
+
+        // Show notification if permission granted
+        if (Notification.permission === 'granted') {
+            new Notification('Rest Complete!', {
+                body: 'Time for your next set',
+                icon: '/static/icons/icon-192.png',
+                tag: 'rest-timer'
+            });
+        }
+    },
+
+    playAlertSound() {
+        // Create a simple beep using Web Audio API
+        try {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            oscillator.frequency.value = 800;
+            oscillator.type = 'sine';
+            gainNode.gain.value = 0.3;
+
+            oscillator.start();
+            setTimeout(() => {
+                oscillator.stop();
+                audioCtx.close();
+            }, 200);
+        } catch (e) {
+            // Audio not supported, ignore
+        }
+    },
+
+    updateDisplay() {
+        if (!this.display) return;
+
+        const mins = Math.floor(this.seconds / 60);
+        const secs = this.seconds % 60;
+        this.display.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+
+        // Change color based on time remaining
+        if (this.seconds <= 10 && this.seconds > 0) {
+            this.display.classList.add('timer-warning');
+        } else {
+            this.display.classList.remove('timer-warning');
+        }
+    },
+
+    // Auto-start after form submission (called from page)
+    autoStart() {
+        this.reset();
+        this.start();
+
+        // Request notification permission for timer alerts
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+    }
+};
+
+// Initialize rest timer on DOMContentLoaded
+document.addEventListener('DOMContentLoaded', function() {
+    restTimer.init();
+});

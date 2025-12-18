@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Add Planned Workout - Workout Tracker{% endblock %}
+
+{% block content %}
+<div class="add-plan">
+    <header class="page-header">
+        <a href="{{ url_for('planning.index') }}" class="btn btn-secondary">Back</a>
+        <h1>Plan Workout</h1>
+    </header>
+
+    <form method="POST" class="card">
+        <div class="form-group">
+            <label for="planned_date">Date</label>
+            <input type="date" id="planned_date" name="planned_date"
+                   value="{{ plan_date }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="workout_type">Workout Type</label>
+            <select id="workout_type" name="workout_type" required>
+                <option value="">Select type...</option>
+                <option value="upper_body">Strength Training</option>
+                <option value="running">Running</option>
+                <option value="rest">Rest/Recovery</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="description">Description (optional)</label>
+            <input type="text" id="description" name="description"
+                   placeholder="e.g., Push Focus, Easy Run, Tempo...">
+        </div>
+
+        <div class="form-row" id="durationRow">
+            <div class="form-group">
+                <label for="target_duration">Target Duration (min)</label>
+                <input type="number" id="target_duration" name="target_duration"
+                       min="1" max="300" inputmode="numeric">
+            </div>
+        </div>
+
+        <div class="form-group" id="distanceRow" style="display: none;">
+            <label for="target_distance">Target Distance (km)</label>
+            <input type="number" id="target_distance" name="target_distance"
+                   min="0" max="100" step="0.1" inputmode="decimal">
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block btn-large">
+            Add to Plan
+        </button>
+    </form>
+</div>
+
+<script>
+document.getElementById('workout_type').addEventListener('change', function() {
+    const distanceRow = document.getElementById('distanceRow');
+    if (this.value === 'running') {
+        distanceRow.style.display = 'block';
+    } else {
+        distanceRow.style.display = 'none';
+    }
+});
+</script>
+{% endblock %}

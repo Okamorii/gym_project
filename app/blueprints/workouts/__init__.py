@@ -1,10 +1,32 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
 from datetime import date
+from sqlalchemy import text
 from app import db
 from app.models import WorkoutSession, StrengthLog, Exercise, PersonalRecord
 
 workouts_bp = Blueprint('workouts', __name__)
+
+
+def check_strength_volume_spike(user_id):
+    """Check for strength volume spikes."""
+    try:
+        result = db.session.execute(
+            text('SELECT * FROM check_strength_volume_spike(:user_id) WHERE is_spike = true LIMIT 3'),
+            {'user_id': user_id}
+        ).fetchall()
+
+        alerts = []
+        for row in result:
+            alerts.append({
+                'muscle_group': row.muscle_group,
+                'increase_percent': float(row.increase_percent),
+                'current_volume': float(row.current_volume),
+                'previous_volume': float(row.previous_volume)
+            })
+        return alerts
+    except Exception:
+        return []
 
 
 @workouts_bp.route('/')
@@ -84,6 +106,8 @@ def log_exercise(session_id):
         flash('Access denied.', 'error')
         return redirect(url_for('workouts.index'))
 
+    just_logged = False  # Track if a set was just logged (for auto-starting rest timer)
+
     if request.method == 'POST':
         exercise_id = request.form.get('exercise_id', type=int)
         sets = request.form.get('sets', type=int)
@@ -95,6 +119,12 @@ def log_exercise(session_id):
         if not all([exercise_id, sets, reps]):
             flash('Exercise, sets, and reps are required.', 'error')
         else:
+            # Get previous PR before logging
+            previous_pr = PersonalRecord.get_exercise_pr(
+                current_user.user_id, exercise_id, '1RM'
+            )
+            previous_pr_value = float(previous_pr.value) if previous_pr else None
+
             log = StrengthLog(
                 session_id=session_id,
                 exercise_id=exercise_id,
@@ -107,7 +137,10 @@ def log_exercise(session_id):
             db.session.add(log)
             db.session.commit()
 
+            just_logged = True  # Set was logged successfully
+
             # Check for PR
+            pr_data = None
             if weight_kg:
                 estimated_1rm = log.estimated_1rm
                 is_pr = PersonalRecord.check_and_update_pr(
@@ -118,18 +151,32 @@ def log_exercise(session_id):
                     date_achieved=session.session_date
                 )
                 if is_pr:
-                    flash(f'New PR! Estimated 1RM: {estimated_1rm}kg', 'success')
+                    exercise = Exercise.query.get(exercise_id)
+                    pr_data = {
+                        'exercise_name': exercise.name,
+                        'new_value': estimated_1rm,
+                        'previous_value': previous_pr_value,
+                        'improvement': round(estimated_1rm - previous_pr_value, 1) if previous_pr_value else None
+                    }
+                    flash(f'PR_DATA:{pr_data["exercise_name"]}:{pr_data["new_value"]}:{pr_data["previous_value"] or 0}', 'pr')
                 else:
                     flash('Set logged successfully.', 'success')
+            else:
+                flash('Set logged successfully.', 'success')
 
     exercises = Exercise.get_strength_exercises()
     current_logs = session.strength_logs.all()
+
+    # Check for volume spikes
+    volume_spikes = check_strength_volume_spike(current_user.user_id)
 
     return render_template(
         'workouts/log_exercise.html',
         session=session,
         exercises=exercises,
-        current_logs=current_logs
+        current_logs=current_logs,
+        volume_spikes=volume_spikes,
+        just_logged=just_logged
     )
 
 

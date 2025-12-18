@@ -37,6 +37,8 @@ def create_app(config_name='default'):
     from .blueprints.exercises import exercises_bp
     from .blueprints.analytics import analytics_bp
     from .blueprints.api import api_bp
+    from .blueprints.planning import planning_bp
+    from .blueprints.export import export_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
@@ -46,6 +48,8 @@ def create_app(config_name='default'):
     app.register_blueprint(exercises_bp, url_prefix='/exercises')
     app.register_blueprint(analytics_bp, url_prefix='/analytics')
     app.register_blueprint(api_bp, url_prefix='/api/v1')
+    app.register_blueprint(planning_bp, url_prefix='/planning')
+    app.register_blueprint(export_bp, url_prefix='/export')
 
     # User loader for Flask-Login
     from .models.user import User

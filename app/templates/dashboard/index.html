@@ -14,7 +14,9 @@
     <div class="alerts">
         {% for alert in volume_alerts %}
         <div class="alert alert-{{ alert.severity }}">
-            {{ alert.message }}
+            <span class="alert-icon">{% if alert.type == 'running' %}&#127939;{% else %}&#128170;{% endif %}</span>
+            <span class="alert-message">{{ alert.message }}</span>
+            <button class="alert-dismiss" onclick="dismissAlert(this)">&times;</button>
         </div>
         {% endfor %}
     </div>

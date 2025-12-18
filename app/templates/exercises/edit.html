@@ -17,14 +17,17 @@
         </div>
 
         <div class="form-group">
-            <label for="muscle_group">Muscle Group</label>
-            <input type="text" id="muscle_group" name="muscle_group" list="muscle-groups"
-                   value="{{ exercise.muscle_group or '' }}">
-            <datalist id="muscle-groups">
+            <label>Muscle Groups</label>
+            <p class="form-hint">Select all muscles targeted by this exercise</p>
+            <div class="checkbox-grid">
                 {% for mg in muscle_groups %}
-                <option value="{{ mg }}">
+                <label class="checkbox-item">
+                    <input type="checkbox" name="muscle_groups" value="{{ mg }}"
+                           {% if mg in exercise.muscle_groups_list %}checked{% endif %}>
+                    <span>{{ mg }}</span>
+                </label>
                 {% endfor %}
-            </datalist>
+            </div>
         </div>
 
         <div class="form-group">

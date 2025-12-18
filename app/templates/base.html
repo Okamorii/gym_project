@@ -32,6 +32,7 @@
         </button>
         <div class="nav-menu">
             <a href="{{ url_for('dashboard.index') }}" class="nav-link">Dashboard</a>
+            <a href="{{ url_for('planning.index') }}" class="nav-link">Plan</a>
             <a href="{{ url_for('workouts.index') }}" class="nav-link">Strength</a>
             <a href="{{ url_for('running.index') }}" class="nav-link">Running</a>
             <a href="{{ url_for('recovery.index') }}" class="nav-link">Recovery</a>
@@ -43,15 +44,48 @@
     </nav>
     {% endif %}
 
+    <!-- PR Celebration Modal -->
+    <div id="prModal" class="pr-modal" style="display: none;">
+        <div class="pr-modal-content">
+            <div class="pr-confetti"></div>
+            <div class="pr-trophy">&#127942;</div>
+            <h2 class="pr-title">NEW PR!</h2>
+            <p class="pr-exercise" id="prExercise"></p>
+            <div class="pr-values">
+                <div class="pr-old" id="prOld">
+                    <span class="pr-label">Previous</span>
+                    <span class="pr-number" id="prOldValue">-</span>
+                </div>
+                <div class="pr-arrow">&#10132;</div>
+                <div class="pr-new" id="prNew">
+                    <span class="pr-label">New PR</span>
+                    <span class="pr-number" id="prNewValue">-</span>
+                </div>
+            </div>
+            <p class="pr-improvement" id="prImprovement"></p>
+            <button class="btn btn-primary pr-close" onclick="closePrModal()">Keep Crushing It!</button>
+        </div>
+    </div>
+
     <main class="container">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 <div class="flash-messages">
                     {% for category, message in messages %}
-                        <div class="flash flash-{{ category }}">
-                            {{ message }}
-                            <button class="flash-close">&times;</button>
-                        </div>
+                        {% if category == 'pr' and message.startswith('PR_DATA:') %}
+                            {# PR celebration handled by modal #}
+                            <script>
+                                document.addEventListener('DOMContentLoaded', function() {
+                                    const prData = '{{ message }}'.split(':');
+                                    showPrCelebration(prData[1], parseFloat(prData[2]), parseFloat(prData[3]));
+                                });
+                            </script>
+                        {% else %}
+                            <div class="flash flash-{{ category }}">
+                                {{ message }}
+                                <button class="flash-close">&times;</button>
+                            </div>
+                        {% endif %}
                     {% endfor %}
                 </div>
             {% endif %}
