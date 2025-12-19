@@ -86,6 +86,10 @@ def new_session():
         db.session.add(session)
         db.session.flush()  # Get session_id
 
+        # Get interval details (available for any run type when toggle is on)
+        has_intervals = request.form.get('has_intervals') == 'on'
+        interval_details = request.form.get('interval_details') if has_intervals else None
+
         # Create running log
         run_log = RunningLog(
             session_id=session.session_id,
@@ -98,7 +102,8 @@ def new_session():
             max_heart_rate=max_heart_rate,
             perceived_effort=perceived_effort,
             weather_conditions=weather,
-            route_notes=route_notes
+            route_notes=route_notes,
+            interval_details=interval_details
         )
         db.session.add(run_log)
         db.session.commit()
@@ -157,6 +162,8 @@ def edit_session(session_id):
         run_log.perceived_effort = request.form.get('perceived_effort')
         run_log.weather_conditions = request.form.get('weather_conditions')
         run_log.route_notes = request.form.get('route_notes')
+        has_intervals = request.form.get('has_intervals') == 'on'
+        run_log.interval_details = request.form.get('interval_details') if has_intervals else None
 
         # Recalculate pace
         if run_log.distance_km and run_log.duration_minutes and run_log.distance_km > 0:

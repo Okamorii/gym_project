@@ -95,6 +95,79 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    // Interval Builder Toggle and Preview
+    const hasIntervalsToggle = document.getElementById('has_intervals');
+    const intervalBuilder = document.getElementById('interval_builder');
+    const intervalPreview = document.getElementById('interval_preview');
+    const intervalDetailsHidden = document.getElementById('interval_details');
+
+    if (hasIntervalsToggle && intervalBuilder) {
+        // Toggle interval builder visibility
+        hasIntervalsToggle.addEventListener('change', function() {
+            intervalBuilder.style.display = this.checked ? 'block' : 'none';
+            if (!this.checked) {
+                intervalDetailsHidden.value = '';
+                if (intervalPreview) intervalPreview.textContent = '';
+            } else {
+                updateIntervalPreview();
+            }
+        });
+
+        // Update preview when any interval field changes
+        const intervalFields = intervalBuilder.querySelectorAll('select, input');
+        intervalFields.forEach(field => {
+            field.addEventListener('change', updateIntervalPreview);
+            field.addEventListener('input', updateIntervalPreview);
+        });
+
+        // Initial preview if intervals are enabled
+        if (hasIntervalsToggle.checked) {
+            updateIntervalPreview();
+        }
+    }
+
+    function updateIntervalPreview() {
+        if (!intervalPreview || !intervalDetailsHidden) return;
+
+        const warmupDuration = document.getElementById('warmup_duration')?.value;
+        const warmupPace = document.getElementById('warmup_pace')?.value;
+        const intervalCount = document.getElementById('interval_count')?.value;
+        const intervalDuration = document.getElementById('interval_duration')?.value;
+        const intervalPace = document.getElementById('interval_pace')?.value;
+        const recoveryDuration = document.getElementById('recovery_duration')?.value;
+        const recoveryType = document.getElementById('recovery_type')?.value;
+        const cooldownDuration = document.getElementById('cooldown_duration')?.value;
+        const cooldownPace = document.getElementById('cooldown_pace')?.value;
+
+        let parts = [];
+
+        // Warm up
+        if (warmupDuration) {
+            parts.push(`${warmupDuration}min warm up (${warmupPace})`);
+        }
+
+        // Intervals
+        if (intervalCount && intervalDuration) {
+            let intervalText = `${intervalCount}x${intervalDuration}`;
+            if (intervalPace) {
+                intervalText += ` @ ${intervalPace}`;
+            }
+            if (recoveryDuration) {
+                intervalText += ` / ${recoveryDuration} ${recoveryType}`;
+            }
+            parts.push(intervalText);
+        }
+
+        // Cool down
+        if (cooldownDuration) {
+            parts.push(`${cooldownDuration}min cool down (${cooldownPace})`);
+        }
+
+        const summary = parts.join(' + ');
+        intervalPreview.textContent = summary || 'Configure intervals above...';
+        intervalDetailsHidden.value = summary;
+    }
 });
 
 // ============================================

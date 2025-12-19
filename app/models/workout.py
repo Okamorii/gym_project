@@ -156,6 +156,7 @@ class RunningLog(db.Model):
     perceived_effort = db.Column(db.String(20))
     weather_conditions = db.Column(db.String(50))
     route_notes = db.Column(db.Text)
+    interval_details = db.Column(db.Text)  # Details for interval runs (e.g., "20min warm up + 5x30s at 4'30")
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     @property

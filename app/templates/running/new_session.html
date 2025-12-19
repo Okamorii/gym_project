@@ -29,13 +29,144 @@
                 <label for="distance_km">Distance (km)</label>
                 <input type="text" id="distance_km" name="distance_km"
                        inputmode="decimal" class="input-large decimal-input"
-                       placeholder="e.g., 5.5 or 5,5" pattern="[0-9]*[.,]?[0-9]*">
+                       placeholder="e.g., 5.54 or 5,54" pattern="[0-9]*[.,]?[0-9]{0,2}">
             </div>
             <div class="form-group">
                 <label for="duration_minutes">Duration (min)</label>
                 <input type="number" id="duration_minutes" name="duration_minutes"
                        min="0" inputmode="numeric" class="input-large">
             </div>
+        </div>
+
+        <!-- Interval Builder Toggle -->
+        <div class="form-group">
+            <label class="toggle-label">
+                <input type="checkbox" id="has_intervals" name="has_intervals">
+                <span class="toggle-switch"></span>
+                <span>Include interval work</span>
+            </label>
+        </div>
+
+        <!-- Structured Interval Builder -->
+        <div class="interval-builder" id="interval_builder" style="display: none;">
+            <div class="interval-section">
+                <h4>Warm Up</h4>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="warmup_duration">Duration (min)</label>
+                        <select id="warmup_duration" name="warmup_duration">
+                            <option value="">None</option>
+                            <option value="5">5 min</option>
+                            <option value="10" selected>10 min</option>
+                            <option value="15">15 min</option>
+                            <option value="20">20 min</option>
+                            <option value="25">25 min</option>
+                            <option value="30">30 min</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="warmup_pace">Pace</label>
+                        <select id="warmup_pace" name="warmup_pace">
+                            <option value="easy" selected>Easy</option>
+                            <option value="moderate">Moderate</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="interval-section">
+                <h4>Intervals</h4>
+                <div class="form-row form-row-3">
+                    <div class="form-group">
+                        <label for="interval_count">Reps</label>
+                        <select id="interval_count" name="interval_count">
+                            {% for i in range(1, 21) %}
+                            <option value="{{ i }}" {% if i == 5 %}selected{% endif %}>{{ i }}x</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="interval_duration">Duration</label>
+                        <select id="interval_duration" name="interval_duration">
+                            <option value="15s">15 sec</option>
+                            <option value="20s">20 sec</option>
+                            <option value="30s" selected>30 sec</option>
+                            <option value="45s">45 sec</option>
+                            <option value="1min">1 min</option>
+                            <option value="1min30">1:30</option>
+                            <option value="2min">2 min</option>
+                            <option value="3min">3 min</option>
+                            <option value="4min">4 min</option>
+                            <option value="5min">5 min</option>
+                            <option value="400m">400m</option>
+                            <option value="800m">800m</option>
+                            <option value="1km">1 km</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="interval_pace">Target Pace</label>
+                        <input type="text" id="interval_pace" name="interval_pace"
+                               placeholder="e.g., 4'30&quot;">
+                    </div>
+                </div>
+            </div>
+
+            <div class="interval-section">
+                <h4>Recovery</h4>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="recovery_duration">Duration</label>
+                        <select id="recovery_duration" name="recovery_duration">
+                            <option value="15s">15 sec</option>
+                            <option value="30s">30 sec</option>
+                            <option value="45s">45 sec</option>
+                            <option value="1min" selected>1 min</option>
+                            <option value="1min30">1:30</option>
+                            <option value="2min">2 min</option>
+                            <option value="3min">3 min</option>
+                            <option value="walk">Walk recovery</option>
+                            <option value="jog">Jog recovery</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="recovery_type">Type</label>
+                        <select id="recovery_type" name="recovery_type">
+                            <option value="jog" selected>Jog</option>
+                            <option value="walk">Walk</option>
+                            <option value="stand">Standing</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="interval-section">
+                <h4>Cool Down</h4>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="cooldown_duration">Duration (min)</label>
+                        <select id="cooldown_duration" name="cooldown_duration">
+                            <option value="">None</option>
+                            <option value="5">5 min</option>
+                            <option value="10" selected>10 min</option>
+                            <option value="15">15 min</option>
+                            <option value="20">20 min</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="cooldown_pace">Pace</label>
+                        <select id="cooldown_pace" name="cooldown_pace">
+                            <option value="easy" selected>Easy</option>
+                            <option value="very_easy">Very Easy</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preview of structured data -->
+            <div class="interval-preview" id="interval_preview"></div>
+
+            <!-- Hidden field to store formatted interval details -->
+            <input type="hidden" id="interval_details" name="interval_details">
         </div>
 
         <div class="form-row">

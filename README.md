@@ -15,6 +15,7 @@ A full-featured workout tracking application for monitoring strength training an
 ### Workout Logging
 - **Strength Training** - Log sets, reps, weight, RPE, and rest times
 - **Running Sessions** - Track distance, duration, pace, heart rate, and run type (easy/tempo/interval/long)
+- **Interval Builder** - Structured interval configuration with warm up, intervals, recovery, and cool down
 - **Recovery Tracking** - Daily sleep, energy, soreness, and motivation scores (1-10)
 - **Body Measurements** - Weight, body fat %, and circumference measurements
 

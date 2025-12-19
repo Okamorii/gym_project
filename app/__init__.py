@@ -67,4 +67,9 @@ def create_app(config_name='default'):
     def offline():
         return render_template('offline.html')
 
+    # Health check endpoint for Docker
+    @app.route('/health')
+    def health():
+        return {'status': 'healthy'}, 200
+
     return app

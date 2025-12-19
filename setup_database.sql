@@ -95,6 +95,7 @@ CREATE TABLE running_logs (
     perceived_effort VARCHAR(20),
     weather_conditions VARCHAR(50),
     route_notes TEXT,
+    interval_details TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

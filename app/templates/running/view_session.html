@@ -80,6 +80,13 @@
             <p>{{ run_log.route_notes }}</p>
         </div>
         {% endif %}
+
+        {% if run_log.interval_details %}
+        <div class="detail-section">
+            <h3>Interval Details</h3>
+            <p class="interval-details">{{ run_log.interval_details }}</p>
+        </div>
+        {% endif %}
         {% endif %}
 
         {% if session.notes %}
